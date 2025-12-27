@@ -1,4 +1,4 @@
-# Satat - Lebanese Card Game
+# Satat - Card Game
 
 A cross-platform mobile application for playing Satat, a traditional Lebanese 4-player partnership trick-taking card game.
 
