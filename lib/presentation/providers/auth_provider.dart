@@ -15,23 +15,24 @@ final authStateProvider = StreamProvider<auth.User?>((ref) {
 });
 
 /// Provider for current user data (UserModel from Firestore)
-final currentUserProvider = StreamProvider<UserModel?>((ref) async* {
-  final authState = ref.watch(authStateProvider);
+final currentUserProvider = StreamProvider<UserModel?>((ref) {
+  final authRepository = ref.watch(authRepositoryProvider);
 
-  await for (final user in authState.stream) {
+  return authRepository.authStateChanges.asyncMap((user) async {
     if (user == null) {
-      yield null;
+      return null;
     } else {
-      final authRepository = ref.read(authRepositoryProvider);
       try {
         final userModel = await authRepository.getUserById(user.uid);
-        yield userModel;
+        print('✅ User data loaded: ${userModel.username}');
+        return userModel;
       } catch (e) {
-        // If user document doesn't exist yet, yield null
-        yield null;
+        // If user document doesn't exist yet, log error and return null
+        print('❌ Error loading user data: $e');
+        return null;
       }
     }
-  }
+  });
 });
 
 /// Auth controller for authentication operations

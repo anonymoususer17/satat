@@ -18,7 +18,11 @@ class HomeScreen extends ConsumerWidget {
         child: SafeArea(
           child: userAsync.when(
             data: (user) {
+              // If user is null, sign out and go back to login
               if (user == null) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  ref.read(authControllerProvider.notifier).signOut();
+                });
                 return const Center(
                   child: CircularProgressIndicator(
                     color: AppTheme.primaryColor,

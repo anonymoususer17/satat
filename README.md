@@ -1,6 +1,6 @@
 # Satat - Card Game
 
-A cross-platform mobile application for playing Satat, a traditional Lebanese 4-player partnership trick-taking card game.
+A cross-platform mobile application for playing Satat, a traditional 4-player partnership trick-taking card game.
 
 ## About Satat
 
@@ -172,6 +172,6 @@ Private project - All rights reserved
 
 ## Acknowledgments
 
-- Game design inspired by traditional Lebanese card game Satat
+- Game design inspired by traditional card game Satat
 - UI/UX inspired by Balatro's elegant simplicity
 - Built with Flutter and Firebase

@@ -63,10 +63,17 @@ class AuthRepository {
         friends: [],
       );
 
-      await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .set(_userModelToFirestore(userModel));
+      print('📝 Creating user document in Firestore for: $username');
+      try {
+        await _firestore
+            .collection('users')
+            .doc(user.uid)
+            .set(_userModelToFirestore(userModel));
+        print('✅ User document created successfully');
+      } catch (firestoreError) {
+        print('❌ Firestore write error: $firestoreError');
+        throw Exception('Failed to create user document: $firestoreError');
+      }
 
       return userModel;
     } on auth.FirebaseAuthException catch (e) {
@@ -183,16 +190,46 @@ class AuthRepository {
 
   /// Convert UserModel to Firestore format
   Map<String, dynamic> _userModelToFirestore(UserModel user) {
-    final json = user.toJson();
-    json['createdAt'] = FieldValue.serverTimestamp();
-    return json;
+    return {
+      'id': user.id,
+      'email': user.email,
+      'username': user.username,
+      'displayName': user.displayName,
+      'createdAt': FieldValue.serverTimestamp(),
+      'stats': {
+        'gamesPlayed': user.stats.gamesPlayed,
+        'gamesWon': user.stats.gamesWon,
+        'gamesLost': user.stats.gamesLost,
+        'totalTricks': user.stats.totalTricks,
+        'perfectWins': user.stats.perfectWins,
+      },
+      'friends': user.friends,
+    };
   }
 
   /// Convert Firestore document to UserModel
   UserModel _userModelFromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    data['id'] = doc.id;
-    return UserModel.fromJson(data);
+
+    // Parse stats manually
+    final statsData = data['stats'] as Map<String, dynamic>? ?? {};
+    final stats = UserStats(
+      gamesPlayed: statsData['gamesPlayed'] as int? ?? 0,
+      gamesWon: statsData['gamesWon'] as int? ?? 0,
+      gamesLost: statsData['gamesLost'] as int? ?? 0,
+      totalTricks: statsData['totalTricks'] as int? ?? 0,
+      perfectWins: statsData['perfectWins'] as int? ?? 0,
+    );
+
+    return UserModel(
+      id: doc.id,
+      email: data['email'] as String,
+      username: data['username'] as String,
+      displayName: data['displayName'] as String,
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      stats: stats,
+      friends: List<String>.from(data['friends'] as List? ?? []),
+    );
   }
 
   /// Handle Firebase Auth exceptions
