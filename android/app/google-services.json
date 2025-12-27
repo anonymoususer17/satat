@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "559618081374",
+    "project_id": "satat-b5033",
+    "storage_bucket": "satat-b5033.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:559618081374:android:8a07787f912ef665cfaacf",
+        "android_client_info": {
+          "package_name": "com.example.satat"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCFqb_Vce_8Elpk0yMKJmZiLjCVS4ApM7E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
