@@ -13,20 +13,27 @@ Satat is a strategic card game played with 4 players in fixed partnerships. The 
 
 ## Features
 
-### Current (Phase 0 - Complete ✅)
-- ✅ Project setup with Flutter & Firebase
-- ✅ Clean architecture structure
-- ✅ Core game rules implemented as constants
-- ✅ Elegant Balatro-inspired theme
+### Completed
+- ✅ **Phase 0**: Project setup with Flutter & Firebase
+- ✅ **Phase 1**: Authentication (Email/password login and registration)
+- ✅ **Phase 2**: Friends System (Add friends, manage friend requests)
+- ✅ **Phase 3**: Lobby System (Create/join lobbies with invite codes, bot management)
+- ✅ **Phase 4**: Core Gameplay (Full Satat rules implementation with real-time multiplayer)
+  - Trump selection (first 5 cards, defer to last 4, reshuffle)
+  - Card playing with full rule validation
+  - Trick-taking mechanics
+  - H2 special card rules
+  - Real-time game state sync
+  - Bot AI for automated play
+  - Win conditions (normal, 7-0, 13-0 perfect win)
 
-### Planned (MVP)
-- 🎯 **Authentication**: Email/password login and registration
-- 🎯 **Friends System**: Add friends, manage friend requests
-- 🎯 **Lobby System**: Create/join lobbies with invite codes
-- 🎯 **Core Gameplay**: Full Satat rules implementation with real-time multiplayer
-- 🎯 **Bot AI**: Rule-based AI for practice games
+### Planned (Future Phases)
 - 🎯 **Game History**: Track stats and view past games
 - 🎯 **Smooth Animations**: Card dealing, playing, and trick collection
+- 🎯 **Enhanced Bot AI**: Smarter bot decision making
+- 🎯 **7-0 Continue Option**: UI for choosing to continue after 7-0
+- 🎯 **Card Passing**: After 7-0 or 13-0 loss
+- 🎯 **Deal Rotation**: Proper dealer rotation based on game results
 
 ## Tech Stack
 
@@ -175,6 +182,3 @@ Private project - All rights reserved
 - Game design inspired by traditional card game Satat
 - UI/UX inspired by Balatro's elegant simplicity
 - Built with Flutter and Firebase
-
-
-tell claude to rean the plan.md then continue with phase 2 (add friends or w/e)

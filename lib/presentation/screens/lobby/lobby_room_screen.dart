@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/models/lobby_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/lobby_provider.dart';
+import '../../providers/game_provider.dart';
 
 class LobbyRoomScreen extends ConsumerWidget {
   final String lobbyId;
@@ -334,14 +336,53 @@ class LobbyRoomScreen extends ConsumerWidget {
     await controller.leaveLobby(lobbyId: lobbyId, userId: userId);
   }
 
-  void _startGame(BuildContext context, WidgetRef ref, String lobbyId) {
-    // TODO: Implement game start in Phase 4
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Game start will be implemented in Phase 4!'),
-        backgroundColor: AppTheme.accentColor,
-      ),
-    );
+  Future<void> _startGame(BuildContext context, WidgetRef ref, String lobbyId) async {
+    try {
+      // Get lobby data to create game
+      final lobbyAsync = ref.read(lobbyProvider(lobbyId));
+      final lobby = lobbyAsync.value;
+
+      if (lobby == null) {
+        throw Exception('Lobby not found');
+      }
+
+      // Prepare lobby players data for game creation
+      final lobbyPlayers = lobby.players.map((p) => {
+            'userId': p.userId,
+            'username': p.username ?? 'Unknown',
+            'displayName': p.displayName ?? p.username ?? 'Unknown',
+            'isBot': p.isBot,
+          }).toList();
+
+      // Create game (dealer is position 0 for first game)
+      final gameController = ref.read(gameControllerProvider.notifier);
+      final game = await gameController.createGame(
+        lobbyId: lobbyId,
+        lobbyPlayers: lobbyPlayers,
+        dealerPosition: 0,
+      );
+
+      if (game != null && context.mounted) {
+        // Navigate to game screen
+        context.push('/game/${game.id}');
+      } else if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to create game'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error starting game: ${e.toString()}'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _deleteLobby(
