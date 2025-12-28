@@ -154,36 +154,40 @@ class HomeScreen extends ConsumerWidget {
                 color: AppTheme.primaryColor,
               ),
             ),
-            error: (error, stack) => Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.error_outline,
-                    size: 64,
-                    color: AppTheme.errorColor,
-                  ),
-                  const SizedBox(height: AppTheme.spacingMedium),
-                  Text(
-                    'Error loading user data',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: AppTheme.spacingSmall),
-                  Text(
-                    error.toString(),
-                    style: Theme.of(context).textTheme.bodyMedium,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: AppTheme.spacingLarge),
-                  ElevatedButton(
-                    onPressed: () {
-                      ref.read(authControllerProvider.notifier).signOut();
-                    },
-                    child: const Text('Sign Out'),
-                  ),
-                ],
-              ),
-            ),
+            error: (error, stack) {
+              // Auto sign out on error and redirect to login
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                ref.read(authControllerProvider.notifier).signOut();
+              });
+
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: AppTheme.errorColor,
+                    ),
+                    const SizedBox(height: AppTheme.spacingMedium),
+                    Text(
+                      'Error loading user data',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: AppTheme.spacingSmall),
+                    Text(
+                      'Signing out...',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: AppTheme.spacingLarge),
+                    const CircularProgressIndicator(
+                      color: AppTheme.errorColor,
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
         ),
       ),

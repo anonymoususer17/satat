@@ -22,15 +22,24 @@ final currentUserProvider = StreamProvider<UserModel?>((ref) {
     if (user == null) {
       return null;
     } else {
-      try {
-        final userModel = await authRepository.getUserById(user.uid);
-        print('✅ User data loaded: ${userModel.username}');
-        return userModel;
-      } catch (e) {
-        // If user document doesn't exist yet, log error and return null
-        print('❌ Error loading user data: $e');
-        return null;
+      // Retry logic: document might be created after auth user
+      for (int attempt = 0; attempt < 5; attempt++) {
+        try {
+          final userModel = await authRepository.getUserById(user.uid);
+          print('✅ User data loaded: ${userModel.username}');
+          return userModel;
+        } catch (e) {
+          if (attempt < 4) {
+            // Wait before retrying (document might be being created)
+            await Future.delayed(Duration(milliseconds: 300 * (attempt + 1)));
+          } else {
+            // All attempts failed - throw error to trigger sign out
+            print('❌ Error loading user data after ${attempt + 1} attempts: $e');
+            throw Exception('Failed to load user data. Please try logging in again.');
+          }
+        }
       }
+      return null;
     }
   });
 });

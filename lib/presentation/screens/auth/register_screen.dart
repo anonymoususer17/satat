@@ -48,6 +48,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     // Check for errors or success
     final authState = ref.read(authControllerProvider);
     authState.whenOrNull(
+      data: (_) {
+        // Refresh the user provider to load the newly created user document
+        ref.invalidate(currentUserProvider);
+      },
       error: (error, stack) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
