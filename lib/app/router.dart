@@ -5,6 +5,8 @@ import '../presentation/screens/auth/login_screen.dart';
 import '../presentation/screens/auth/register_screen.dart';
 import '../presentation/screens/home/home_screen.dart';
 import '../presentation/screens/friends/friends_screen.dart';
+import '../presentation/screens/lobby/lobby_list_screen.dart';
+import '../presentation/screens/lobby/lobby_room_screen.dart';
 
 /// Router configuration for the app
 final routerProvider = Provider<GoRouter>((ref) {
@@ -51,9 +53,20 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'friends',
         builder: (context, state) => const FriendsScreen(),
       ),
+      GoRoute(
+        path: '/lobby',
+        name: 'lobby',
+        builder: (context, state) => const LobbyListScreen(),
+      ),
+      GoRoute(
+        path: '/lobby/:id',
+        name: 'lobby-room',
+        builder: (context, state) {
+          final lobbyId = state.pathParameters['id']!;
+          return LobbyRoomScreen(lobbyId: lobbyId);
+        },
+      ),
       // Future routes will go here:
-      // - /lobby
-      // - /lobby/:id
       // - /game/:id
       // - /profile
       // - /stats

@@ -126,13 +126,13 @@ class HomeScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: AppTheme.spacingMedium),
 
-                    // Lobby Button (Coming Soon)
+                    // Lobby Button
                     _MenuButton(
                       icon: Icons.meeting_room,
                       title: 'Lobby',
-                      subtitle: 'Coming soon',
-                      onTap: null,
-                      isDisabled: true,
+                      subtitle: 'Create or join a game',
+                      onTap: () => context.push('/lobby'),
+                      isDisabled: false,
                     ),
                     const SizedBox(height: AppTheme.spacingMedium),
 
