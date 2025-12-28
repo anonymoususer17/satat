@@ -59,15 +59,15 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
     });
   }
 
-  /// Sign in with email and password
+  /// Sign in with email/username and password
   Future<void> signIn({
-    required String email,
+    required String emailOrUsername,
     required String password,
   }) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       await _authRepository.signInWithEmailAndPassword(
-        email: email,
+        emailOrUsername: emailOrUsername,
         password: password,
       );
     });

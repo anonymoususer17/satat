@@ -31,7 +31,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     final authController = ref.read(authControllerProvider.notifier);
     await authController.signIn(
-      email: _emailController.text.trim(),
+      emailOrUsername: _emailController.text.trim(),
       password: _passwordController.text,
     );
 
@@ -91,21 +91,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     const SizedBox(height: AppTheme.spacingXLarge),
 
-                    // Email field
+                    // Email or Username field
                     TextFormField(
                       controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
+                      keyboardType: TextInputType.text,
                       decoration: const InputDecoration(
-                        labelText: 'Email',
-                        hintText: 'Enter your email',
-                        prefixIcon: Icon(Icons.email),
+                        labelText: 'Email or Username',
+                        hintText: 'Enter your email or username',
+                        prefixIcon: Icon(Icons.person),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter your email';
-                        }
-                        if (!value.contains('@')) {
-                          return 'Please enter a valid email';
+                          return 'Please enter your email or username';
                         }
                         return null;
                       },

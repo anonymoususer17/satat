@@ -83,12 +83,30 @@ class AuthRepository {
     }
   }
 
-  /// Sign in with email and password
+  /// Sign in with email/username and password
   Future<UserModel> signInWithEmailAndPassword({
-    required String email,
+    required String emailOrUsername,
     required String password,
   }) async {
     try {
+      String email = emailOrUsername;
+
+      // Check if input is username (doesn't contain @)
+      if (!emailOrUsername.contains('@')) {
+        // Look up email from username
+        final usernameQuery = await _firestore
+            .collection('users')
+            .where('username', isEqualTo: emailOrUsername)
+            .limit(1)
+            .get();
+
+        if (usernameQuery.docs.isEmpty) {
+          throw Exception('Username not found');
+        }
+
+        email = usernameQuery.docs.first.data()['email'] as String;
+      }
+
       final userCredential = await _firebaseAuth.signInWithEmailAndPassword(
         email: email,
         password: password,

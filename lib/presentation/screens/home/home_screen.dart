@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 
@@ -18,11 +19,8 @@ class HomeScreen extends ConsumerWidget {
         child: SafeArea(
           child: userAsync.when(
             data: (user) {
-              // If user is null, sign out and go back to login
+              // If user is null, show loading (don't auto-sign-out during registration)
               if (user == null) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  ref.read(authControllerProvider.notifier).signOut();
-                });
                 return const Center(
                   child: CircularProgressIndicator(
                     color: AppTheme.primaryColor,
@@ -30,7 +28,7 @@ class HomeScreen extends ConsumerWidget {
                 );
               }
 
-              return Padding(
+              return SingleChildScrollView(
                 padding: const EdgeInsets.all(AppTheme.spacingLarge),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -112,33 +110,41 @@ class HomeScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: AppTheme.spacingLarge),
 
-                    // Coming Soon section
-                    Expanded(
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.construction,
-                              size: 64,
-                              color: AppTheme.textSecondaryColor,
-                            ),
-                            const SizedBox(height: AppTheme.spacingMedium),
-                            Text(
-                              'More features coming soon!',
-                              style: Theme.of(context).textTheme.titleLarge,
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: AppTheme.spacingSmall),
-                            Text(
-                              'Next: Friends system & Lobby',
-                              style: Theme.of(context).textTheme.bodyMedium,
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
+                    // Menu Section
+                    Text(
+                      'Menu',
+                      style: Theme.of(context).textTheme.headlineMedium,
                     ),
+                    const SizedBox(height: AppTheme.spacingMedium),
+
+                    // Friends Button
+                    _MenuButton(
+                      icon: Icons.people,
+                      title: 'Friends',
+                      subtitle: 'Manage your friends list',
+                      onTap: () => context.push('/friends'),
+                    ),
+                    const SizedBox(height: AppTheme.spacingMedium),
+
+                    // Lobby Button (Coming Soon)
+                    _MenuButton(
+                      icon: Icons.meeting_room,
+                      title: 'Lobby',
+                      subtitle: 'Coming soon',
+                      onTap: null,
+                      isDisabled: true,
+                    ),
+                    const SizedBox(height: AppTheme.spacingMedium),
+
+                    // Game History Button (Coming Soon)
+                    _MenuButton(
+                      icon: Icons.history,
+                      title: 'Game History',
+                      subtitle: 'Coming soon',
+                      onTap: null,
+                      isDisabled: true,
+                    ),
+                    const SizedBox(height: AppTheme.spacingXLarge),
                   ],
                 ),
               );
@@ -215,6 +221,58 @@ class _StatRow extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _MenuButton extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback? onTap;
+  final bool isDisabled;
+
+  const _MenuButton({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    this.onTap,
+    this.isDisabled = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Opacity(
+      opacity: isDisabled ? 0.5 : 1.0,
+      child: Card(
+        child: ListTile(
+          leading: Icon(
+            icon,
+            color: isDisabled ? AppTheme.textSecondaryColor : AppTheme.accentColor,
+            size: 32,
+          ),
+          title: Text(
+            title,
+            style: TextStyle(
+              color: isDisabled ? AppTheme.textSecondaryColor : AppTheme.textOnCardColor,
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
+          ),
+          subtitle: Text(
+            subtitle,
+            style: const TextStyle(
+              color: AppTheme.textSecondaryColor,
+            ),
+          ),
+          trailing: Icon(
+            Icons.chevron_right,
+            color: isDisabled ? AppTheme.textSecondaryColor : AppTheme.textOnCardColor,
+          ),
+          onTap: isDisabled ? null : onTap,
+          enabled: !isDisabled,
+        ),
       ),
     );
   }

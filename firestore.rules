@@ -1,0 +1,27 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users collection
+    match /users/{userId} {
+      // Allow anyone to read users (needed for username check during registration and friend search)
+      allow read: if true;
+
+      // Allow authenticated users to create their own document
+      allow create: if request.auth != null && request.auth.uid == userId;
+
+      // Allow users to update/delete their own document
+      allow update, delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Friend Requests collection
+    match /friendRequests/{requestId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Everything else requires auth
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

@@ -175,3 +175,6 @@ Private project - All rights reserved
 - Game design inspired by traditional card game Satat
 - UI/UX inspired by Balatro's elegant simplicity
 - Built with Flutter and Firebase
+
+
+tell claude to rean the plan.md then continue with phase 2 (add friends or w/e)

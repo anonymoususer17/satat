@@ -47,17 +47,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     // Check for errors or success
     final authState = ref.read(authControllerProvider);
-    authState.when(
-      data: (_) {
-        // Success - navigate back to login (or the app will auto-navigate to home)
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Registration successful!'),
-            backgroundColor: AppTheme.accentColor,
-          ),
-        );
-        Navigator.of(context).pop();
-      },
+    authState.whenOrNull(
       error: (error, stack) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -66,8 +56,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           ),
         );
       },
-      loading: () {},
     );
+
+    // Navigation is handled by the router - no need to manually navigate
   }
 
   @override
