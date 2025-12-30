@@ -5,6 +5,7 @@ import '../../data/repositories/game_repository.dart';
 import '../../domain/services/game_logic_service.dart';
 import '../../domain/services/bot_ai_service.dart';
 import '../../domain/services/bot_controller_service.dart';
+import 'auth_provider.dart';
 
 /// Game repository provider
 final gameRepositoryProvider = Provider<GameRepository>((ref) {
@@ -17,7 +18,16 @@ final gameLogicServiceProvider = Provider<GameLogicService>((ref) {
 });
 
 /// Watch a specific game by ID
+/// Automatically recreates when user auth state changes
 final gameProvider = StreamProvider.family<GameModel, String>((ref, gameId) {
+  // Watch auth state to invalidate this provider when user changes
+  final authState = ref.watch(authStateProvider);
+
+  // If not authenticated, throw error
+  if (authState.value == null) {
+    throw Exception('Not authenticated');
+  }
+
   final repository = ref.watch(gameRepositoryProvider);
   return repository.watchGame(gameId);
 });

@@ -2,7 +2,6 @@ import 'dart:async';
 import '../../data/models/game_model.dart';
 import '../../data/repositories/game_repository.dart';
 import 'bot_ai_service.dart';
-import 'game_logic_service.dart';
 
 /// Service that controls bot players automatically
 class BotControllerService {

@@ -5,6 +5,7 @@
 /// - Players must follow suit if possible (except H2 can be played anytime)
 /// - Trump suit determined by trump maker
 /// - First team to win 7 tricks wins (can continue to 13-0 if winning 7-0)
+library;
 
 class GameConstants {
   // Game Setup
