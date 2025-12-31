@@ -234,22 +234,56 @@ class TrumpSelectionScreen extends ConsumerWidget {
           width: card.isHeart2 ? 3 : 1,
         ),
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Stack(
         children: [
-          Text(
-            card.rank.displayName,
-            style: TextStyle(
-              color: card.suit.isRed ? Colors.red : Colors.black,
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
+          // Top-left rank and suit
+          Positioned(
+            top: 4,
+            left: 4,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  card.rank.displayName,
+                  style: TextStyle(
+                    color: card.suit.isRed ? Colors.red : Colors.black,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    height: 1.0,
+                  ),
+                ),
+                Text(
+                  card.suit.symbol,
+                  style: TextStyle(
+                    color: card.suit.isRed ? Colors.red : Colors.black,
+                    fontSize: 20,
+                    height: 1.0,
+                  ),
+                ),
+              ],
             ),
           ),
-          Text(
-            card.suit.symbol,
-            style: TextStyle(
-              color: card.suit.isRed ? Colors.red : Colors.black,
-              fontSize: 40,
+          // Center display (larger symbols)
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  card.rank.displayName,
+                  style: TextStyle(
+                    color: card.suit.isRed ? Colors.red : Colors.black,
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  card.suit.symbol,
+                  style: TextStyle(
+                    color: card.suit.isRed ? Colors.red : Colors.black,
+                    fontSize: 40,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

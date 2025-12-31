@@ -326,27 +326,67 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     bool isMyTurn,
   ) {
     final sortedHand = player.sortedHand;
+    const cardWidth = 80.0;
+    const cardOverlapOffset = 30.0; // How much each card overlaps the previous one
 
     return Container(
       height: 180,
       padding: const EdgeInsets.all(AppTheme.spacingMedium),
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: sortedHand.length,
-        itemBuilder: (context, index) {
-          final card = sortedHand[index];
-          final canPlay = isMyTurn && game.phase == GamePhase.playing;
+      child: Center(
+        child: SizedBox(
+          // Calculate total width needed for stacked cards
+          width: sortedHand.isEmpty
+            ? 0
+            : cardWidth + (sortedHand.length - 1) * cardOverlapOffset,
+          height: 150,
+          child: Stack(
+            children: [
+              for (int index = 0; index < sortedHand.length; index++)
+                Positioned(
+                  left: index * cardOverlapOffset,
+                  child: Builder(
+                    builder: (context) {
+                      final card = sortedHand[index];
+                      final canPlay = isMyTurn && game.phase == GamePhase.playing;
 
-          return GestureDetector(
-            onTap: canPlay
-                ? () => _playCard(context, ref, game.id, player.userId!, card)
-                : null,
-            child: Opacity(
-              opacity: canPlay ? 1.0 : 0.6,
-              child: _buildCardWidget(context, card),
-            ),
-          );
-        },
+                      return GestureDetector(
+                        onTap: canPlay
+                            ? () => _playCard(context, ref, game.id, player.userId!, card)
+                            : null,
+                        child: Stack(
+                          children: [
+                            ColorFiltered(
+                              colorFilter: canPlay
+                                  ? const ColorFilter.mode(
+                                      Colors.transparent,
+                                      BlendMode.multiply,
+                                    )
+                                  : const ColorFilter.matrix(<double>[
+                                      0.2126, 0.7152, 0.0722, 0, 0,
+                                      0.2126, 0.7152, 0.0722, 0, 0,
+                                      0.2126, 0.7152, 0.0722, 0, 0,
+                                      0, 0, 0, 1, 0,
+                                    ]),
+                              child: _buildCardWidget(context, card),
+                            ),
+                            if (!canPlay)
+                              Positioned.fill(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.withOpacity(0.4),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -378,22 +418,56 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                 width: card.isHeart2 ? 3 : 1,
               ),
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+            child: Stack(
               children: [
-                Text(
-                  card.rank.displayName,
-                  style: TextStyle(
-                    color: card.suit.isRed ? Colors.red : Colors.black,
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
+                // Top-left rank and suit (visible when overlapped)
+                Positioned(
+                  top: 4,
+                  left: 4,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        card.rank.displayName,
+                        style: TextStyle(
+                          color: card.suit.isRed ? Colors.red : Colors.black,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          height: 1.0,
+                        ),
+                      ),
+                      Text(
+                        card.suit.symbol,
+                        style: TextStyle(
+                          color: card.suit.isRed ? Colors.red : Colors.black,
+                          fontSize: 20,
+                          height: 1.0,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                Text(
-                  card.suit.symbol,
-                  style: TextStyle(
-                    color: card.suit.isRed ? Colors.red : Colors.black,
-                    fontSize: 40,
+                // Center display (larger symbols)
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        card.rank.displayName,
+                        style: TextStyle(
+                          color: card.suit.isRed ? Colors.red : Colors.black,
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        card.suit.symbol,
+                        style: TextStyle(
+                          color: card.suit.isRed ? Colors.red : Colors.black,
+                          fontSize: 40,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
