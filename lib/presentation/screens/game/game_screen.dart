@@ -1,3 +1,4 @@
+import 'dart:math' show pi;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
@@ -215,41 +216,200 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     GameModel game,
     GamePlayer currentPlayer,
   ) {
-    return Center(
+    // Get opponents relative to current player's position
+    final opponents = game.players.where((p) => p.position != currentPlayer.position).toList();
+
+    // Calculate relative positions (clockwise from current player)
+    final relativePositions = opponents.map((opp) {
+      int diff = (opp.position - currentPlayer.position) % 4;
+      return {'player': opp, 'relative': diff};
+    }).toList();
+
+    // Sort by relative position to get consistent placement
+    relativePositions.sort((a, b) => (a['relative'] as int).compareTo(b['relative'] as int));
+
+    // Assign to positions: top (opposite), left, right
+    final topPlayer = relativePositions[1]['player'] as GamePlayer; // Opposite player
+    final leftPlayer = relativePositions[2]['player'] as GamePlayer; // Player to the left
+    final rightPlayer = relativePositions[0]['player'] as GamePlayer; // Player to the right
+
+    return Stack(
+      children: [
+        // Top opponent (opposite player)
+        Positioned(
+          top: 16,
+          left: 0,
+          right: 0,
+          child: _buildOpponentHand(context, topPlayer, alignment: Alignment.topCenter),
+        ),
+
+        // Left opponent
+        Positioned(
+          left: 16,
+          top: 0,
+          bottom: 0,
+          child: _buildOpponentHand(
+            context,
+            leftPlayer,
+            alignment: Alignment.centerLeft,
+            vertical: true,
+            rotation: pi / 2, // 90 degrees clockwise
+          ),
+        ),
+
+        // Right opponent
+        Positioned(
+          right: 16,
+          top: 0,
+          bottom: 0,
+          child: _buildOpponentHand(
+            context,
+            rightPlayer,
+            alignment: Alignment.centerRight,
+            vertical: true,
+            rotation: -pi / 2, // 90 degrees counter-clockwise
+          ),
+        ),
+
+        // Center area with trick and turn indicator
+        Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Current trick
+              if (game.currentTrick != null && game.currentTrick!.cardsPlayed.isNotEmpty)
+                _buildCurrentTrick(context, game),
+
+              const SizedBox(height: AppTheme.spacingLarge),
+
+              // Turn indicator
+              if (game.currentTurnPosition != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppTheme.spacingLarge,
+                    vertical: AppTheme.spacingMedium,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.accentColor.withAlpha(51), // 0.2 * 255 = 51
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    game.currentTurnPosition == currentPlayer.position
+                        ? 'Your Turn'
+                        : '${game.getPlayerByPosition(game.currentTurnPosition!).displayName}\'s Turn',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: AppTheme.textPrimaryColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                ),
+
+              // Game result
+              if (game.result != null) _buildGameResult(context, game),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOpponentHand(
+    BuildContext context,
+    GamePlayer player, {
+    required Alignment alignment,
+    bool vertical = false,
+    double rotation = 0.0,
+  }) {
+    const cardWidth = 50.0;
+    const cardHeight = 75.0;
+    const cardOverlapOffset = 20.0;
+
+    final cardCount = player.hand.length;
+
+    return Container(
+      alignment: alignment,
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Current trick
-          if (game.currentTrick != null && game.currentTrick!.cardsPlayed.isNotEmpty)
-            _buildCurrentTrick(context, game),
-
-          const SizedBox(height: AppTheme.spacingLarge),
-
-          // Turn indicator
-          if (game.currentTurnPosition != null)
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppTheme.spacingLarge,
-                vertical: AppTheme.spacingMedium,
-              ),
-              decoration: BoxDecoration(
-                color: AppTheme.accentColor.withAlpha(51), // 0.2 * 255 = 51
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                game.currentTurnPosition == currentPlayer.position
-                    ? 'Your Turn'
-                    : '${game.getPlayerByPosition(game.currentTurnPosition!).displayName}\'s Turn',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: AppTheme.textPrimaryColor,
-                      fontWeight: FontWeight.bold,
-                    ),
+          // Player name
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppTheme.spacingSmall,
+              vertical: 4,
+            ),
+            decoration: BoxDecoration(
+              color: AppTheme.cardColor,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              player.displayName,
+              style: const TextStyle(
+                color: AppTheme.textOnCardColor,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
               ),
             ),
-
-          // Game result
-          if (game.result != null) _buildGameResult(context, game),
+          ),
+          const SizedBox(height: 8),
+          // Cards
+          if (vertical)
+            SizedBox(
+              width: cardHeight, // Swapped because rotated
+              height: cardCount == 0
+                  ? 0
+                  : cardWidth + (cardCount - 1) * cardOverlapOffset,
+              child: Stack(
+                children: [
+                  for (int i = 0; i < cardCount; i++)
+                    Positioned(
+                      top: i * cardOverlapOffset,
+                      child: Transform.rotate(
+                        angle: rotation,
+                        child: _buildFaceDownCard(cardWidth, cardHeight),
+                      ),
+                    ),
+                ],
+              ),
+            )
+          else
+            SizedBox(
+              width: cardCount == 0
+                  ? 0
+                  : cardWidth + (cardCount - 1) * cardOverlapOffset,
+              height: cardHeight,
+              child: Stack(
+                children: [
+                  for (int i = 0; i < cardCount; i++)
+                    Positioned(
+                      left: i * cardOverlapOffset,
+                      child: _buildFaceDownCard(cardWidth, cardHeight),
+                    ),
+                ],
+              ),
+            ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFaceDownCard(double width, double height) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: AppTheme.accentColor,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: AppTheme.textPrimaryColor.withAlpha(77), // 0.3 * 255
+          width: 1,
+        ),
+      ),
+      child: Center(
+        child: Icon(
+          Icons.style,
+          color: AppTheme.textPrimaryColor.withAlpha(128), // 0.5 * 255
+          size: 24,
+        ),
       ),
     );
   }
@@ -373,7 +533,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                               Positioned.fill(
                                 child: Container(
                                   decoration: BoxDecoration(
-                                    color: Colors.grey.withOpacity(0.4),
+                                    color: Colors.grey.withValues(alpha: 0.4),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
