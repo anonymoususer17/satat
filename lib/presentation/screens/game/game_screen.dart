@@ -21,6 +21,8 @@ class GameScreen extends ConsumerStatefulWidget {
 }
 
 class _GameScreenState extends ConsumerState<GameScreen> {
+  int? _hoveredCardIndex;
+
   @override
   void initState() {
     super.initState();
@@ -359,10 +361,12 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                   ? 0
                   : cardWidth + (cardCount - 1) * cardOverlapOffset,
               child: Stack(
+                clipBehavior: Clip.none, // Prevent clipping of rotated cards
                 children: [
                   for (int i = 0; i < cardCount; i++)
                     Positioned(
                       top: i * cardOverlapOffset,
+                      left: 0,
                       child: Transform.rotate(
                         angle: rotation,
                         child: _buildFaceDownCard(cardWidth, cardHeight),
@@ -378,10 +382,12 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                   : cardWidth + (cardCount - 1) * cardOverlapOffset,
               height: cardHeight,
               child: Stack(
+                clipBehavior: Clip.none, // Prevent clipping
                 children: [
                   for (int i = 0; i < cardCount; i++)
                     Positioned(
                       left: i * cardOverlapOffset,
+                      top: 0,
                       child: _buildFaceDownCard(cardWidth, cardHeight),
                     ),
                 ],
@@ -487,58 +493,80 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   ) {
     final sortedHand = player.sortedHand;
     const cardWidth = 80.0;
+    const cardHeight = 120.0;
     const cardOverlapOffset = 30.0; // How much each card overlaps the previous one
+    const hoverOffset = 20.0; // How much card lifts when hovered
 
     return Container(
       height: 180,
       padding: const EdgeInsets.all(AppTheme.spacingMedium),
       child: Center(
         child: SizedBox(
-          // Calculate total width needed for stacked cards
+          // Calculate total width needed for stacked cards (full width of last card)
           width: sortedHand.isEmpty
             ? 0
             : cardWidth + (sortedHand.length - 1) * cardOverlapOffset,
-          height: 150,
+          height: cardHeight + hoverOffset, // Extra space for hover effect
           child: Stack(
+            clipBehavior: Clip.none, // Allow cards to overflow when hovered
             children: [
               for (int index = 0; index < sortedHand.length; index++)
                 Positioned(
                   left: index * cardOverlapOffset,
+                  bottom: 0, // Align cards at bottom so they lift upward
                   child: Builder(
                     builder: (context) {
                       final card = sortedHand[index];
                       final canPlay = isMyTurn && game.phase == GamePhase.playing;
+                      final isHovered = _hoveredCardIndex == index;
 
-                      return GestureDetector(
-                        onTap: canPlay
-                            ? () => _playCard(context, ref, game.id, player.userId!, card)
-                            : null,
-                        child: Stack(
-                          children: [
-                            ColorFiltered(
-                              colorFilter: canPlay
-                                  ? const ColorFilter.mode(
-                                      Colors.transparent,
-                                      BlendMode.multiply,
-                                    )
-                                  : const ColorFilter.matrix(<double>[
-                                      0.2126, 0.7152, 0.0722, 0, 0,
-                                      0.2126, 0.7152, 0.0722, 0, 0,
-                                      0.2126, 0.7152, 0.0722, 0, 0,
-                                      0, 0, 0, 1, 0,
-                                    ]),
-                              child: _buildCardWidget(context, card),
+                      return MouseRegion(
+                        onEnter: canPlay ? (_) => setState(() => _hoveredCardIndex = index) : null,
+                        onExit: canPlay ? (_) => setState(() => _hoveredCardIndex = null) : null,
+                        cursor: canPlay ? SystemMouseCursors.click : SystemMouseCursors.basic,
+                        child: GestureDetector(
+                          onTapDown: canPlay ? (_) => setState(() => _hoveredCardIndex = index) : null,
+                          onTapUp: canPlay ? (_) => setState(() => _hoveredCardIndex = null) : null,
+                          onTapCancel: canPlay ? () => setState(() => _hoveredCardIndex = null) : null,
+                          onTap: canPlay
+                              ? () => _playCard(context, ref, game.id, player.userId!, card)
+                              : null,
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 150),
+                            curve: Curves.easeOut,
+                            transform: Matrix4.translationValues(
+                              0,
+                              isHovered && canPlay ? -hoverOffset : 0,
+                              0,
                             ),
-                            if (!canPlay)
-                              Positioned.fill(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.withValues(alpha: 0.4),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
+                            child: Stack(
+                              children: [
+                                ColorFiltered(
+                                  colorFilter: canPlay
+                                      ? const ColorFilter.mode(
+                                          Colors.transparent,
+                                          BlendMode.multiply,
+                                        )
+                                      : const ColorFilter.matrix(<double>[
+                                          0.2126, 0.7152, 0.0722, 0, 0,
+                                          0.2126, 0.7152, 0.0722, 0, 0,
+                                          0.2126, 0.7152, 0.0722, 0, 0,
+                                          0, 0, 0, 1, 0,
+                                        ]),
+                                  child: _buildCardWidget(context, card),
                                 ),
-                              ),
-                          ],
+                                if (!canPlay)
+                                  Positioned.fill(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.withValues(alpha: 0.4),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
                         ),
                       );
                     },
