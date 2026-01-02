@@ -14,11 +14,11 @@ Satat is a strategic card game played with 4 players in fixed partnerships. The 
 ## Features
 
 ### Completed
-- ✅ **Phase 0**: Project setup with Flutter & Firebase
-- ✅ **Phase 1**: Authentication (Email/password login and registration)
-- ✅ **Phase 2**: Friends System (Add friends, manage friend requests)
-- ✅ **Phase 3**: Lobby System (Create/join lobbies with invite codes, bot management)
-- ✅ **Phase 4**: Core Gameplay (Full Satat rules implementation with real-time multiplayer)
+- **Phase 0**: Project setup with Flutter & Firebase
+- **Phase 1**: Authentication (Email/password login and registration)
+- **Phase 2**: Friends System (Add friends, manage friend requests)
+- **Phase 3**: Lobby System (Create/join lobbies with invite codes, bot management)
+- **Phase 4**: Core Gameplay (Full Satat rules implementation with real-time multiplayer)
   - Trump selection (first 5 cards, defer to last 4, reshuffle)
   - Card playing with full rule validation
   - Trick-taking mechanics
@@ -28,12 +28,12 @@ Satat is a strategic card game played with 4 players in fixed partnerships. The 
   - Win conditions (normal, 7-0, 13-0 perfect win)
 
 ### Planned (Future Phases)
-- 🎯 **Game History**: Track stats and view past games
-- 🎯 **Smooth Animations**: Card dealing, playing, and trick collection
-- 🎯 **Enhanced Bot AI**: Smarter bot decision making
-- 🎯 **7-0 Continue Option**: UI for choosing to continue after 7-0
-- 🎯 **Card Passing**: After 7-0 or 13-0 loss
-- 🎯 **Deal Rotation**: Proper dealer rotation based on game results
+- **Game History**: Track stats and view past games
+- **Smooth Animations**: Card dealing, playing, and trick collection
+- **Enhanced Bot AI**: Smarter bot decision making
+- **7-0 Continue Option**: UI for choosing to continue after 7-0
+- **Card Passing**: After 7-0 or 13-0 loss
+- **Deal Rotation**: Proper dealer rotation based on game results
 
 ## Tech Stack
 
