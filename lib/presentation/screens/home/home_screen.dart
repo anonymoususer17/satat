@@ -33,6 +33,16 @@ class HomeScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // Title Image
+                    Center(
+                      child: Image.asset(
+                        'assets/title/satat.png',
+                        height: 120,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                    const SizedBox(height: AppTheme.spacingLarge),
+
                     // Header
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,

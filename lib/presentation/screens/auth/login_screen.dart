@@ -78,16 +78,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // Logo/Title
-                    Text(
-                      'Satat',
-                      style: Theme.of(context).textTheme.displayLarge,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: AppTheme.spacingSmall),
-                    Text(
-                      'Card Game',
-                      style: Theme.of(context).textTheme.titleMedium,
-                      textAlign: TextAlign.center,
+                    Center(
+                      child: Image.asset(
+                        'assets/title/satat.png',
+                        height: 150,
+                        fit: BoxFit.contain,
+                      ),
                     ),
                     const SizedBox(height: AppTheme.spacingXLarge),
 
