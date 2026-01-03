@@ -223,78 +223,89 @@ class TrumpSelectionScreen extends ConsumerWidget {
   }
 
   Widget _buildCardWidget(CardModel card) {
-    return Container(
-      width: 80,
-      height: 120,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: card.isHeart2 ? AppTheme.accentColor : Colors.grey,
-          width: card.isHeart2 ? 3 : 1,
-        ),
-      ),
-      child: Stack(
-        children: [
-          // Top-left rank and suit
-          Positioned(
-            top: 4,
-            left: 4,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    final assetPath = 'assets/cards/${card.id}.png';
+
+    return SizedBox(
+      width: 120,
+      height: 168,
+      child: Image.asset(
+        assetPath,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) {
+          // Fallback to text rendering if image not found
+          return Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: card.isHeart2 ? AppTheme.accentColor : Colors.grey,
+                width: card.isHeart2 ? 3 : 1,
+              ),
+            ),
+            child: Stack(
               children: [
-                Text(
-                  card.rank.displayName,
-                  style: TextStyle(
-                    color: card.suit.isRed ? Colors.red : Colors.black,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    height: 1.0,
+                // Top-left rank and suit
+                Positioned(
+                  top: 4,
+                  left: 4,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        card.rank.displayName,
+                        style: TextStyle(
+                          color: card.suit.isRed ? Colors.red : Colors.black,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          height: 1.0,
+                        ),
+                      ),
+                      Text(
+                        card.suit.symbol,
+                        style: TextStyle(
+                          color: card.suit.isRed ? Colors.red : Colors.black,
+                          fontSize: 20,
+                          height: 1.0,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                Text(
-                  card.suit.symbol,
-                  style: TextStyle(
-                    color: card.suit.isRed ? Colors.red : Colors.black,
-                    fontSize: 20,
-                    height: 1.0,
+                // Center display (larger symbols)
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        card.rank.displayName,
+                        style: TextStyle(
+                          color: card.suit.isRed ? Colors.red : Colors.black,
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        card.suit.symbol,
+                        style: TextStyle(
+                          color: card.suit.isRed ? Colors.red : Colors.black,
+                          fontSize: 40,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-          ),
-          // Center display (larger symbols)
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  card.rank.displayName,
-                  style: TextStyle(
-                    color: card.suit.isRed ? Colors.red : Colors.black,
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  card.suit.symbol,
-                  style: TextStyle(
-                    color: card.suit.isRed ? Colors.red : Colors.black,
-                    fontSize: 40,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 
   Widget _buildFaceDownCard(int number) {
     return Container(
-      width: 80,
-      height: 120,
+      width: 120,
+      height: 168,
       decoration: BoxDecoration(
         color: AppTheme.primaryColor,
         borderRadius: BorderRadius.circular(8),

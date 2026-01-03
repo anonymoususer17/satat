@@ -322,9 +322,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     bool vertical = false,
     double rotation = 0.0,
   }) {
-    const cardWidth = 50.0;
-    const cardHeight = 75.0;
-    const cardOverlapOffset = 20.0;
+    const cardWidth = 70.0;
+    const cardHeight = 98.0;
+    const cardOverlapOffset = 30.0;
 
     final cardCount = player.hand.length;
 
@@ -492,13 +492,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     bool isMyTurn,
   ) {
     final sortedHand = player.sortedHand;
-    const cardWidth = 80.0;
-    const cardHeight = 120.0;
-    const cardOverlapOffset = 30.0; // How much each card overlaps the previous one
-    const hoverOffset = 20.0; // How much card lifts when hovered
+    const cardWidth = 120.0;
+    const cardHeight = 168.0;
+    const cardOverlapOffset = 40.0; // How much each card overlaps the previous one
+    const hoverOffset = 30.0; // How much card lifts when hovered
 
     return Container(
-      height: 180,
+      height: 230,
       padding: const EdgeInsets.all(AppTheme.spacingMedium),
       child: Center(
         child: SizedBox(
@@ -580,6 +580,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 
   Widget _buildCardWidget(BuildContext context, CardModel card, {String? label}) {
+    final assetPath = 'assets/cards/${card.id}.png';
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 4),
       child: Column(
@@ -595,70 +597,79 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             ),
             const SizedBox(height: 4),
           ],
-          Container(
-            width: 80,
-            height: 120,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: card.isHeart2 ? AppTheme.accentColor : Colors.grey,
-                width: card.isHeart2 ? 3 : 1,
-              ),
-            ),
-            child: Stack(
-              children: [
-                // Top-left rank and suit (visible when overlapped)
-                Positioned(
-                  top: 4,
-                  left: 4,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+          SizedBox(
+            width: 120,
+            height: 168,
+            child: Image.asset(
+              assetPath,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) {
+                // Fallback to text rendering if image not found
+                return Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: card.isHeart2 ? AppTheme.accentColor : Colors.grey,
+                      width: card.isHeart2 ? 3 : 1,
+                    ),
+                  ),
+                  child: Stack(
                     children: [
-                      Text(
-                        card.rank.displayName,
-                        style: TextStyle(
-                          color: card.suit.isRed ? Colors.red : Colors.black,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          height: 1.0,
+                      // Top-left rank and suit (visible when overlapped)
+                      Positioned(
+                        top: 4,
+                        left: 4,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              card.rank.displayName,
+                              style: TextStyle(
+                                color: card.suit.isRed ? Colors.red : Colors.black,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                height: 1.0,
+                              ),
+                            ),
+                            Text(
+                              card.suit.symbol,
+                              style: TextStyle(
+                                color: card.suit.isRed ? Colors.red : Colors.black,
+                                fontSize: 20,
+                                height: 1.0,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      Text(
-                        card.suit.symbol,
-                        style: TextStyle(
-                          color: card.suit.isRed ? Colors.red : Colors.black,
-                          fontSize: 20,
-                          height: 1.0,
+                      // Center display (larger symbols)
+                      Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              card.rank.displayName,
+                              style: TextStyle(
+                                color: card.suit.isRed ? Colors.red : Colors.black,
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              card.suit.symbol,
+                              style: TextStyle(
+                                color: card.suit.isRed ? Colors.red : Colors.black,
+                                fontSize: 40,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                ),
-                // Center display (larger symbols)
-                Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        card.rank.displayName,
-                        style: TextStyle(
-                          color: card.suit.isRed ? Colors.red : Colors.black,
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        card.suit.symbol,
-                        style: TextStyle(
-                          color: card.suit.isRed ? Colors.red : Colors.black,
-                          fontSize: 40,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                );
+              },
             ),
           ),
         ],
