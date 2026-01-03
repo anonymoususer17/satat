@@ -36,8 +36,8 @@ class AppTheme {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFF2D3436),
-      Color(0xFF636E72),
+      Color(0xFFFBF8EF), // Very light warm cream - HSL(47, 56%, 96%)
+      Color(0xFFF6F1DF), // Light warm cream - HSL(47, 56%, 92%)
     ],
   );
 
