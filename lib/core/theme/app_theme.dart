@@ -12,7 +12,7 @@ class AppTheme {
   static const Color errorColor = Color(0xFFD63031); // Red
 
   static const Color backgroundColor = Color(0xFF2D3436); // Dark gray
-  static const Color surfaceColor = Color(0xFF636E72); // Medium gray
+  static const Color surfaceColor = Color(0xFFF0EAD6); // Light cream (for input fields)
   static const Color cardColor = Color(0xFFDFE6E9); // Light gray
 
   // Card Suit Colors
@@ -22,8 +22,8 @@ class AppTheme {
   static const Color spadesColor = Color(0xFF2D3436); // Black
 
   // Text Colors
-  static const Color textPrimaryColor = Color(0xFFDFE6E9); // Light
-  static const Color textSecondaryColor = Color(0xFFB2BEC3); // Gray
+  static const Color textPrimaryColor = Color(0xFF2C2416); // Dark brown
+  static const Color textSecondaryColor = Color(0xFF6D5E52); // Medium brown
   static const Color textOnCardColor = Color(0xFF2D3436); // Dark
 
   // Game-specific Colors
