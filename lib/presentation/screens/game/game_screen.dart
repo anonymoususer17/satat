@@ -273,8 +273,48 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           ),
         ),
 
-        // Center area with trick and turn indicator
+        // Center area with trick and turn indicator (drag target)
         Center(
+          child: _buildDragTarget(context, ref, game, currentPlayer),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDragTarget(
+    BuildContext context,
+    WidgetRef ref,
+    GameModel game,
+    GamePlayer currentPlayer,
+  ) {
+    final isMyTurn = game.isPlayerTurn(currentPlayer.userId!);
+    final canAcceptDrop = isMyTurn && game.phase == GamePhase.playing;
+
+    return DragTarget<CardModel>(
+      onWillAcceptWithDetails: (details) => canAcceptDrop,
+      onAcceptWithDetails: (details) {
+        _playCard(context, ref, game.id, currentPlayer.userId!, details.data);
+      },
+      builder: (context, candidateData, rejectedData) {
+        final isDragging = candidateData.isNotEmpty;
+
+        return Container(
+          constraints: const BoxConstraints(
+            minWidth: 300,
+            minHeight: 300,
+          ),
+          decoration: BoxDecoration(
+            color: isDragging
+                ? AppTheme.accentColor.withAlpha(77) // Highlight when dragging
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(16),
+            border: isDragging
+                ? Border.all(
+                    color: AppTheme.accentColor,
+                    width: 3,
+                  )
+                : null,
+          ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -284,7 +324,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
               const SizedBox(height: AppTheme.spacingLarge),
 
-              // Turn indicator
+              // Turn indicator or drop hint
               if (game.currentTurnPosition != null)
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -292,13 +332,17 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                     vertical: AppTheme.spacingMedium,
                   ),
                   decoration: BoxDecoration(
-                    color: AppTheme.accentColor.withAlpha(51), // 0.2 * 255 = 51
+                    color: isDragging
+                        ? AppTheme.accentColor.withAlpha(128)
+                        : AppTheme.accentColor.withAlpha(51),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    game.currentTurnPosition == currentPlayer.position
-                        ? 'Your Turn'
-                        : '${game.getPlayerByPosition(game.currentTurnPosition!).displayName}\'s Turn',
+                    isDragging
+                        ? 'Drop here to play'
+                        : game.currentTurnPosition == currentPlayer.position
+                            ? 'Your Turn'
+                            : '${game.getPlayerByPosition(game.currentTurnPosition!).displayName}\'s Turn',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           color: AppTheme.textPrimaryColor,
                           fontWeight: FontWeight.bold,
@@ -310,8 +354,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               if (game.result != null) _buildGameResult(context, game),
             ],
           ),
-        ),
-      ],
+        );
+      },
     );
   }
 
@@ -520,54 +564,76 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                       final canPlay = isMyTurn && game.phase == GamePhase.playing;
                       final isHovered = _hoveredCardIndex == index;
 
+                      final cardWidget = AnimatedContainer(
+                        duration: const Duration(milliseconds: 150),
+                        curve: Curves.easeOut,
+                        transform: Matrix4.translationValues(
+                          0,
+                          isHovered && canPlay ? -hoverOffset : 0,
+                          0,
+                        ),
+                        child: Stack(
+                          children: [
+                            ColorFiltered(
+                              colorFilter: canPlay
+                                  ? const ColorFilter.mode(
+                                      Colors.transparent,
+                                      BlendMode.multiply,
+                                    )
+                                  : const ColorFilter.matrix(<double>[
+                                      0.2126, 0.7152, 0.0722, 0, 0,
+                                      0.2126, 0.7152, 0.0722, 0, 0,
+                                      0.2126, 0.7152, 0.0722, 0, 0,
+                                      0, 0, 0, 1, 0,
+                                    ]),
+                              child: _buildCardWidget(context, card),
+                            ),
+                            if (!canPlay)
+                              Positioned.fill(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.withValues(alpha: 0.4),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      );
+
                       return MouseRegion(
                         onEnter: canPlay ? (_) => setState(() => _hoveredCardIndex = index) : null,
                         onExit: canPlay ? (_) => setState(() => _hoveredCardIndex = null) : null,
                         cursor: canPlay ? SystemMouseCursors.click : SystemMouseCursors.basic,
-                        child: GestureDetector(
-                          onTapDown: canPlay ? (_) => setState(() => _hoveredCardIndex = index) : null,
-                          onTapUp: canPlay ? (_) => setState(() => _hoveredCardIndex = null) : null,
-                          onTapCancel: canPlay ? () => setState(() => _hoveredCardIndex = null) : null,
-                          onTap: canPlay
-                              ? () => _playCard(context, ref, game.id, player.userId!, card)
-                              : null,
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 150),
-                            curve: Curves.easeOut,
-                            transform: Matrix4.translationValues(
-                              0,
-                              isHovered && canPlay ? -hoverOffset : 0,
-                              0,
-                            ),
-                            child: Stack(
-                              children: [
-                                ColorFiltered(
-                                  colorFilter: canPlay
-                                      ? const ColorFilter.mode(
-                                          Colors.transparent,
-                                          BlendMode.multiply,
-                                        )
-                                      : const ColorFilter.matrix(<double>[
-                                          0.2126, 0.7152, 0.0722, 0, 0,
-                                          0.2126, 0.7152, 0.0722, 0, 0,
-                                          0.2126, 0.7152, 0.0722, 0, 0,
-                                          0, 0, 0, 1, 0,
-                                        ]),
-                                  child: _buildCardWidget(context, card),
-                                ),
-                                if (!canPlay)
-                                  Positioned.fill(
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.withValues(alpha: 0.4),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
+                        child: canPlay
+                            ? Draggable<CardModel>(
+                                data: card,
+                                feedback: Material(
+                                  color: Colors.transparent,
+                                  child: Transform.scale(
+                                    scale: 1.2,
+                                    child: Opacity(
+                                      opacity: 0.8,
+                                      child: _buildCardWidget(context, card),
                                     ),
                                   ),
-                              ],
-                            ),
-                          ),
-                        ),
+                                ),
+                                childWhenDragging: Opacity(
+                                  opacity: 0.3,
+                                  child: cardWidget,
+                                ),
+                                onDragStarted: () {
+                                  setState(() => _hoveredCardIndex = null);
+                                },
+                                child: GestureDetector(
+                                  onTapDown: (_) => setState(() => _hoveredCardIndex = index),
+                                  onTapUp: (_) => setState(() => _hoveredCardIndex = null),
+                                  onTapCancel: () => setState(() => _hoveredCardIndex = null),
+                                  onTap: () => _playCard(context, ref, game.id, player.userId!, card),
+                                  child: cardWidget,
+                                ),
+                              )
+                            : cardWidget,
                       );
                     },
                   ),
