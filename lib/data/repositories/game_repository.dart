@@ -350,6 +350,8 @@ class GameRepository {
       'completedTricks': game.completedTricks.map((t) => _trickToMap(t)).toList(),
       'team0TricksWon': game.team0TricksWon,
       'team1TricksWon': game.team1TricksWon,
+      'team0Name': game.team0Name,
+      'team1Name': game.team1Name,
       'result': game.result != null ? _resultToMap(game.result!) : null,
       'createdAt': FieldValue.serverTimestamp(),
       'endedAt': game.endedAt,
@@ -422,6 +424,8 @@ class GameRepository {
           .toList(),
       team0TricksWon: data['team0TricksWon'] as int,
       team1TricksWon: data['team1TricksWon'] as int,
+      team0Name: data['team0Name'] as String? ?? 'Team 1',
+      team1Name: data['team1Name'] as String? ?? 'Team 2',
       result: data['result'] != null
           ? _resultFromMap(data['result'] as Map<String, dynamic>)
           : null,

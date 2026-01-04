@@ -156,11 +156,14 @@ class LobbyRoomScreen extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge),
             child: Column(
               children: [
-                Text(
-                  'Team 1',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: AppTheme.accentColor,
-                      ),
+                _TeamNameSection(
+                  lobbyId: lobby.id,
+                  teamNumber: 0,
+                  teamName: lobby.team0Name,
+                  editingBy: lobby.team0EditingBy,
+                  currentUserId: currentUserId,
+                  isCurrentUserOnTeam: currentPlayerSlot.position == 0 || currentPlayerSlot.position == 2,
+                  teamColor: AppTheme.accentColor,
                 ),
                 const SizedBox(height: AppTheme.spacingMedium),
                 _PlayerSlotCard(
@@ -181,11 +184,14 @@ class LobbyRoomScreen extends ConsumerWidget {
                   onRemove: () => _removePlayer(ref, lobby.id, 2, currentUserId),
                 ),
                 const SizedBox(height: AppTheme.spacingLarge),
-                Text(
-                  'Team 2',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: AppTheme.primaryColor,
-                      ),
+                _TeamNameSection(
+                  lobbyId: lobby.id,
+                  teamNumber: 1,
+                  teamName: lobby.team1Name,
+                  editingBy: lobby.team1EditingBy,
+                  currentUserId: currentUserId,
+                  isCurrentUserOnTeam: currentPlayerSlot.position == 1 || currentPlayerSlot.position == 3,
+                  teamColor: AppTheme.primaryColor,
                 ),
                 const SizedBox(height: AppTheme.spacingMedium),
                 _PlayerSlotCard(
@@ -518,6 +524,263 @@ class _PlayerSlotCard extends StatelessWidget {
                     ? const Icon(Icons.check_circle, color: AppTheme.accentColor)
                     : null,
       ),
+    );
+  }
+}
+
+// Team Name Section Widget
+class _TeamNameSection extends ConsumerStatefulWidget {
+  final String lobbyId;
+  final int teamNumber;
+  final String teamName;
+  final String? editingBy;
+  final String currentUserId;
+  final bool isCurrentUserOnTeam;
+  final Color teamColor;
+
+  const _TeamNameSection({
+    required this.lobbyId,
+    required this.teamNumber,
+    required this.teamName,
+    required this.editingBy,
+    required this.currentUserId,
+    required this.isCurrentUserOnTeam,
+    required this.teamColor,
+  });
+
+  @override
+  ConsumerState<_TeamNameSection> createState() => _TeamNameSectionState();
+}
+
+class _TeamNameSectionState extends ConsumerState<_TeamNameSection> {
+  late TextEditingController _controller;
+  bool _isEditing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.teamName);
+  }
+
+  @override
+  void didUpdateWidget(_TeamNameSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Update editing state based on lock
+    if (widget.editingBy == widget.currentUserId && !_isEditing) {
+      setState(() {
+        _isEditing = true;
+        _controller.text = widget.teamName;
+      });
+    } else if (widget.editingBy != widget.currentUserId && _isEditing) {
+      setState(() {
+        _isEditing = false;
+      });
+    }
+    // Update controller if team name changed externally
+    if (widget.teamName != oldWidget.teamName && !_isEditing) {
+      _controller.text = widget.teamName;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _startEditing() async {
+    try {
+      await ref.read(lobbyControllerProvider.notifier).lockTeamNameEdit(
+            lobbyId: widget.lobbyId,
+            team: widget.teamNumber,
+            userId: widget.currentUserId,
+          );
+      setState(() {
+        _isEditing = true;
+        _controller.text = widget.teamName;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _saveTeamName() async {
+    final newName = _controller.text.trim();
+
+    if (newName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Team name cannot be empty'),
+          backgroundColor: AppTheme.errorColor,
+        ),
+      );
+      return;
+    }
+
+    if (newName.length > 20) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Team name cannot exceed 20 characters'),
+          backgroundColor: AppTheme.errorColor,
+        ),
+      );
+      return;
+    }
+
+    try {
+      await ref.read(lobbyControllerProvider.notifier).updateTeamName(
+            lobbyId: widget.lobbyId,
+            team: widget.teamNumber,
+            newName: newName,
+            userId: widget.currentUserId,
+          );
+      setState(() {
+        _isEditing = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Team name updated'),
+            backgroundColor: AppTheme.accentColor,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _cancelEditing() async {
+    try {
+      await ref.read(lobbyControllerProvider.notifier).cancelTeamNameEdit(
+            lobbyId: widget.lobbyId,
+            team: widget.teamNumber,
+            userId: widget.currentUserId,
+          );
+      setState(() {
+        _isEditing = false;
+        _controller.text = widget.teamName;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isLockedByTeammate = widget.editingBy != null &&
+                                widget.editingBy != widget.currentUserId;
+    final isLockedByCurrentUser = widget.editingBy == widget.currentUserId;
+
+    if (_isEditing || isLockedByCurrentUser) {
+      // Editing mode
+      return Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _controller,
+              style: TextStyle(
+                color: widget.teamColor,
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+              ),
+              decoration: InputDecoration(
+                hintText: 'Team Name',
+                hintStyle: TextStyle(color: AppTheme.textSecondaryColor),
+                border: OutlineInputBorder(
+                  borderSide: BorderSide(color: widget.teamColor),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: widget.teamColor),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: widget.teamColor, width: 2),
+                ),
+              ),
+              maxLength: 20,
+            ),
+          ),
+          const SizedBox(width: AppTheme.spacingSmall),
+          IconButton(
+            icon: const Icon(Icons.check),
+            color: AppTheme.accentColor,
+            onPressed: _saveTeamName,
+            tooltip: 'Save',
+          ),
+          IconButton(
+            icon: const Icon(Icons.close),
+            color: AppTheme.errorColor,
+            onPressed: _cancelEditing,
+            tooltip: 'Cancel',
+          ),
+        ],
+      );
+    }
+
+    if (isLockedByTeammate) {
+      // Locked by teammate
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            widget.teamName,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: widget.teamColor,
+                ),
+          ),
+          const SizedBox(width: AppTheme.spacingSmall),
+          Text(
+            '(teammate editing...)',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppTheme.textSecondaryColor,
+                  fontStyle: FontStyle.italic,
+                ),
+          ),
+        ],
+      );
+    }
+
+    // Display mode
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          widget.teamName,
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: widget.teamColor,
+              ),
+        ),
+        if (widget.isCurrentUserOnTeam) ...[
+          const SizedBox(width: AppTheme.spacingSmall),
+          IconButton(
+            icon: const Icon(Icons.edit, size: 20),
+            color: widget.teamColor,
+            onPressed: _startEditing,
+            tooltip: 'Edit team name',
+          ),
+        ],
+      ],
     );
   }
 }
