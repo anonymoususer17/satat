@@ -6,6 +6,7 @@ import '../../../data/models/game_model.dart';
 import '../../../data/models/card_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/game_provider.dart';
+import '../../widgets/game/animated_trick_display.dart';
 import 'trump_selection_screen.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
@@ -318,9 +319,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Current trick
-              if (game.currentTrick != null && game.currentTrick!.cardsPlayed.isNotEmpty)
-                _buildCurrentTrick(context, game),
+              // Current trick - ALWAYS render to keep widget mounted
+              if (game.currentTrick != null)
+                AnimatedTrickDisplay(
+                  trick: game.currentTrick!,
+                  currentPlayerPosition: currentPlayer.position,
+                  game: game,
+                ),
 
               const SizedBox(height: AppTheme.spacingLarge),
 
@@ -460,24 +465,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           color: AppTheme.textPrimaryColor.withAlpha(128), // 0.5 * 255
           size: 24,
         ),
-      ),
-    );
-  }
-
-  Widget _buildCurrentTrick(BuildContext context, GameModel game) {
-    final trick = game.currentTrick!;
-
-    return Container(
-      padding: const EdgeInsets.all(AppTheme.spacingLarge),
-      child: Wrap(
-        spacing: AppTheme.spacingMedium,
-        children: trick.cardsPlayed.map((playedCard) {
-          return _buildCardWidget(
-            context,
-            playedCard.card,
-            label: game.getPlayerByPosition(playedCard.position).displayName,
-          );
-        }).toList(),
       ),
     );
   }
