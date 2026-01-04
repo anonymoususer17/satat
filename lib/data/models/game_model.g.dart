@@ -63,6 +63,8 @@ _$GameModelImpl _$$GameModelImplFromJson(Map<String, dynamic> json) =>
           .toList(),
       team0TricksWon: (json['team0TricksWon'] as num).toInt(),
       team1TricksWon: (json['team1TricksWon'] as num).toInt(),
+      team0Name: json['team0Name'] as String? ?? 'Team 1',
+      team1Name: json['team1Name'] as String? ?? 'Team 2',
       result: json['result'] == null
           ? null
           : GameResult.fromJson(json['result'] as Map<String, dynamic>),
@@ -92,6 +94,8 @@ Map<String, dynamic> _$$GameModelImplToJson(_$GameModelImpl instance) =>
       'completedTricks': instance.completedTricks,
       'team0TricksWon': instance.team0TricksWon,
       'team1TricksWon': instance.team1TricksWon,
+      'team0Name': instance.team0Name,
+      'team1Name': instance.team1Name,
       'result': instance.result,
       'createdAt': instance.createdAt.toIso8601String(),
       'endedAt': instance.endedAt?.toIso8601String(),

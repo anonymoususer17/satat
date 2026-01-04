@@ -360,6 +360,8 @@ class LobbyRoomScreen extends ConsumerWidget {
         lobbyId: lobbyId,
         lobbyPlayers: lobbyPlayers,
         dealerPosition: 0,
+        team0Name: lobby.team0Name,
+        team1Name: lobby.team1Name,
       );
 
       if (game != null && context.mounted) {

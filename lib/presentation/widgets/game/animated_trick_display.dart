@@ -23,11 +23,11 @@ class AnimatedTrickDisplay extends StatefulWidget {
 }
 
 class _AnimatedTrickDisplayState extends State<AnimatedTrickDisplay> {
-  // Index of card currently animating (null if none)
-  int? _animatingCardIndex;
+  // Set of card indices currently animating
+  final Set<int> _animatingCardIndices = {};
 
-  // Whether the animating card has been positioned at start (before animation begins)
-  bool _animationStarted = false;
+  // Set of card indices that have started their animation movement
+  final Set<int> _animationStartedIndices = {};
 
   // Store last completed trick to show it briefly before clearing
   TrickModel? _displayedTrick;
@@ -46,15 +46,15 @@ class _AnimatedTrickDisplayState extends State<AnimatedTrickDisplay> {
   void didUpdateWidget(AnimatedTrickDisplay oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // If we're showing a completed trick, don't process new updates yet
-    if (_showingCompletedTrick) {
-      return;
-    }
-
     final currentLength = widget.trick.cardsPlayed.length;
     final oldLength = oldWidget.trick.cardsPlayed.length;
     final currentTrickNum = widget.trick.trickNumber;
     final oldTrickNum = oldWidget.trick.trickNumber;
+
+    // If we're showing a completed trick, don't process new updates yet
+    if (_showingCompletedTrick) {
+      return;
+    }
 
     // CRITICAL: Detect trick completion by checking if trick number changed
     // AND old trick had 3+ cards (meaning it was close to completion)
@@ -66,7 +66,7 @@ class _AnimatedTrickDisplayState extends State<AnimatedTrickDisplay> {
 
       setState(() {
         _showingCompletedTrick = true;
-        _displayedTrick = completedTrick; // Use completed trick with all 4 cards!
+        _displayedTrick = completedTrick;
       });
 
       // Wait for pause, then allow clearing
@@ -75,11 +75,28 @@ class _AnimatedTrickDisplayState extends State<AnimatedTrickDisplay> {
           setState(() {
             _showingCompletedTrick = false;
             _displayedTrick = widget.trick;
+            // Animate any cards that were added to new trick during pause
+            for (var i = 0; i < widget.trick.cardsPlayed.length; i++) {
+              final card = widget.trick.cardsPlayed[i];
+              final relativePos = (card.position - widget.currentPlayerPosition) % 4;
+              if (relativePos != 0) {
+                _animatingCardIndices.add(i);
+                _animationStartedIndices.add(i); // Start immediately
+                Future.delayed(const Duration(milliseconds: 450), () {
+                  if (mounted) {
+                    setState(() {
+                      _animatingCardIndices.remove(i);
+                      _animationStartedIndices.remove(i);
+                    });
+                  }
+                });
+              }
+            }
           });
         }
       });
 
-      return; // Don't process other logic
+      return;
     }
 
     // Detect if a new card was played (normal case)
@@ -94,28 +111,26 @@ class _AnimatedTrickDisplayState extends State<AnimatedTrickDisplay> {
       _displayedTrick = widget.trick;
 
       // Only animate if it's NOT the current player's card
-      // Skip if already animating another card (prevent visual chaos with bots)
-      if (relativePos != 0 && _animatingCardIndex == null) {
+      if (relativePos != 0) {
         setState(() {
-          _animatingCardIndex = newCardIndex;
-          _animationStarted = false;
+          _animatingCardIndices.add(newCardIndex);
         });
 
-        // On next frame, trigger the animation by setting _animationStarted = true
+        // On next frame, trigger the animation movement
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
             setState(() {
-              _animationStarted = true;
+              _animationStartedIndices.add(newCardIndex);
             });
           }
         });
 
-        // Clear animation flag after duration
+        // Clear animation flags after duration
         Future.delayed(const Duration(milliseconds: 450), () {
           if (mounted) {
             setState(() {
-              _animatingCardIndex = null;
-              _animationStarted = false;
+              _animatingCardIndices.remove(newCardIndex);
+              _animationStartedIndices.remove(newCardIndex);
             });
           }
         });
@@ -124,8 +139,8 @@ class _AnimatedTrickDisplayState extends State<AnimatedTrickDisplay> {
       // Trick was cleared (but not a completion, already handled above)
       if (!_showingCompletedTrick) {
         _displayedTrick = widget.trick;
-        _animatingCardIndex = null;
-        _animationStarted = false;
+        _animatingCardIndices.clear();
+        _animationStartedIndices.clear();
       }
     } else {
       // Same length, just update if not showing completed
@@ -164,8 +179,9 @@ class _AnimatedTrickDisplayState extends State<AnimatedTrickDisplay> {
     const cardWidth = 120.0;
     const spacing = 16.0; // AppTheme.spacingMedium
 
-    // Calculate total width of all cards
-    final totalWidth = (totalCards * cardWidth) + ((totalCards - 1) * spacing);
+    // ALWAYS center for 4 cards to keep positions stable as trick fills
+    const maxCards = 4;
+    final totalWidth = (maxCards * cardWidth) + ((maxCards - 1) * spacing);
 
     // Start position to center all cards
     final startX = centerX - (totalWidth / 2);
@@ -298,7 +314,8 @@ class _AnimatedTrickDisplayState extends State<AnimatedTrickDisplay> {
               children: trickToDisplay.cardsPlayed.asMap().entries.map((entry) {
                 final index = entry.key;
                 final playedCard = entry.value;
-                final isAnimating = index == _animatingCardIndex;
+                final isAnimating = _animatingCardIndices.contains(index);
+                final hasStarted = _animationStartedIndices.contains(index);
 
                 // Calculate positions
                 final startOffset = _getStartOffset(playedCard.position, containerSize);
@@ -308,11 +325,11 @@ class _AnimatedTrickDisplayState extends State<AnimatedTrickDisplay> {
                 final Offset currentPosition;
                 final Duration animDuration;
 
-                if (isAnimating && !_animationStarted) {
+                if (isAnimating && !hasStarted) {
                   // Card just appeared, position at start (no animation yet)
                   currentPosition = startOffset;
                   animDuration = Duration.zero;
-                } else if (isAnimating && _animationStarted) {
+                } else if (isAnimating && hasStarted) {
                   // Animation in progress, move to end position
                   currentPosition = endOffset;
                   animDuration = const Duration(milliseconds: 400);

@@ -39,6 +39,10 @@ class LobbyModel with _$LobbyModel {
     required DateTime createdAt,
     required List<PlayerSlot> players, // Always 4 slots
     String? gameId, // Set when game starts
+    @Default('Team 1') String team0Name,
+    @Default('Team 2') String team1Name,
+    String? team0EditingBy, // userId of player currently editing team 0 name
+    String? team1EditingBy, // userId of player currently editing team 1 name
   }) = _LobbyModel;
 
   factory LobbyModel.fromJson(Map<String, dynamic> json) =>

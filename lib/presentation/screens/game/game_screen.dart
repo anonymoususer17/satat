@@ -198,14 +198,29 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                 color: AppTheme.cardColor,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Text(
-                '${game.team0TricksWon}-${game.team1TricksWon}',
-                style: const TextStyle(
-                  color: AppTheme.textOnCardColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-                textAlign: TextAlign.center,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '${game.team0Name} vs ${game.team1Name}',
+                    style: const TextStyle(
+                      color: AppTheme.textOnCardColor,
+                      fontSize: 12,
+                    ),
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${game.team0TricksWon} - ${game.team1TricksWon}',
+                    style: const TextStyle(
+                      color: AppTheme.textOnCardColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
             ),
           ),

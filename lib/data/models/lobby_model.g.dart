@@ -38,6 +38,10 @@ _$LobbyModelImpl _$$LobbyModelImplFromJson(Map<String, dynamic> json) =>
           .map((e) => PlayerSlot.fromJson(e as Map<String, dynamic>))
           .toList(),
       gameId: json['gameId'] as String?,
+      team0Name: json['team0Name'] as String? ?? 'Team 1',
+      team1Name: json['team1Name'] as String? ?? 'Team 2',
+      team0EditingBy: json['team0EditingBy'] as String?,
+      team1EditingBy: json['team1EditingBy'] as String?,
     );
 
 Map<String, dynamic> _$$LobbyModelImplToJson(_$LobbyModelImpl instance) =>
@@ -50,6 +54,10 @@ Map<String, dynamic> _$$LobbyModelImplToJson(_$LobbyModelImpl instance) =>
       'createdAt': instance.createdAt.toIso8601String(),
       'players': instance.players,
       'gameId': instance.gameId,
+      'team0Name': instance.team0Name,
+      'team1Name': instance.team1Name,
+      'team0EditingBy': instance.team0EditingBy,
+      'team1EditingBy': instance.team1EditingBy,
     };
 
 const _$LobbyStatusEnumMap = {

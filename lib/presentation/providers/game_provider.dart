@@ -66,6 +66,8 @@ class GameController extends StateNotifier<GameControllerState> {
     required String lobbyId,
     required List<Map<String, dynamic>> lobbyPlayers,
     required int dealerPosition,
+    String team0Name = 'Team 1',
+    String team1Name = 'Team 2',
   }) async {
     try {
       state = state.copyWith(isLoading: true, error: null);
@@ -74,6 +76,8 @@ class GameController extends StateNotifier<GameControllerState> {
         lobbyId: lobbyId,
         lobbyPlayers: lobbyPlayers,
         dealerPosition: dealerPosition,
+        team0Name: team0Name,
+        team1Name: team1Name,
       );
 
       state = state.copyWith(isLoading: false);

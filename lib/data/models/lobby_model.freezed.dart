@@ -304,7 +304,13 @@ mixin _$LobbyModel {
   DateTime get createdAt => throw _privateConstructorUsedError;
   List<PlayerSlot> get players =>
       throw _privateConstructorUsedError; // Always 4 slots
-  String? get gameId => throw _privateConstructorUsedError;
+  String? get gameId =>
+      throw _privateConstructorUsedError; // Set when game starts
+  String get team0Name => throw _privateConstructorUsedError;
+  String get team1Name => throw _privateConstructorUsedError;
+  String? get team0EditingBy =>
+      throw _privateConstructorUsedError; // userId of player currently editing team 0 name
+  String? get team1EditingBy => throw _privateConstructorUsedError;
 
   /// Serializes this LobbyModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -332,6 +338,10 @@ abstract class $LobbyModelCopyWith<$Res> {
     DateTime createdAt,
     List<PlayerSlot> players,
     String? gameId,
+    String team0Name,
+    String team1Name,
+    String? team0EditingBy,
+    String? team1EditingBy,
   });
 }
 
@@ -358,6 +368,10 @@ class _$LobbyModelCopyWithImpl<$Res, $Val extends LobbyModel>
     Object? createdAt = null,
     Object? players = null,
     Object? gameId = freezed,
+    Object? team0Name = null,
+    Object? team1Name = null,
+    Object? team0EditingBy = freezed,
+    Object? team1EditingBy = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -393,6 +407,22 @@ class _$LobbyModelCopyWithImpl<$Res, $Val extends LobbyModel>
                 ? _value.gameId
                 : gameId // ignore: cast_nullable_to_non_nullable
                       as String?,
+            team0Name: null == team0Name
+                ? _value.team0Name
+                : team0Name // ignore: cast_nullable_to_non_nullable
+                      as String,
+            team1Name: null == team1Name
+                ? _value.team1Name
+                : team1Name // ignore: cast_nullable_to_non_nullable
+                      as String,
+            team0EditingBy: freezed == team0EditingBy
+                ? _value.team0EditingBy
+                : team0EditingBy // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            team1EditingBy: freezed == team1EditingBy
+                ? _value.team1EditingBy
+                : team1EditingBy // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -417,6 +447,10 @@ abstract class _$$LobbyModelImplCopyWith<$Res>
     DateTime createdAt,
     List<PlayerSlot> players,
     String? gameId,
+    String team0Name,
+    String team1Name,
+    String? team0EditingBy,
+    String? team1EditingBy,
   });
 }
 
@@ -442,6 +476,10 @@ class __$$LobbyModelImplCopyWithImpl<$Res>
     Object? createdAt = null,
     Object? players = null,
     Object? gameId = freezed,
+    Object? team0Name = null,
+    Object? team1Name = null,
+    Object? team0EditingBy = freezed,
+    Object? team1EditingBy = freezed,
   }) {
     return _then(
       _$LobbyModelImpl(
@@ -477,6 +515,22 @@ class __$$LobbyModelImplCopyWithImpl<$Res>
             ? _value.gameId
             : gameId // ignore: cast_nullable_to_non_nullable
                   as String?,
+        team0Name: null == team0Name
+            ? _value.team0Name
+            : team0Name // ignore: cast_nullable_to_non_nullable
+                  as String,
+        team1Name: null == team1Name
+            ? _value.team1Name
+            : team1Name // ignore: cast_nullable_to_non_nullable
+                  as String,
+        team0EditingBy: freezed == team0EditingBy
+            ? _value.team0EditingBy
+            : team0EditingBy // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        team1EditingBy: freezed == team1EditingBy
+            ? _value.team1EditingBy
+            : team1EditingBy // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -494,6 +548,10 @@ class _$LobbyModelImpl implements _LobbyModel {
     required this.createdAt,
     required final List<PlayerSlot> players,
     this.gameId,
+    this.team0Name = 'Team 1',
+    this.team1Name = 'Team 2',
+    this.team0EditingBy,
+    this.team1EditingBy,
   }) : _players = players;
 
   factory _$LobbyModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -523,10 +581,22 @@ class _$LobbyModelImpl implements _LobbyModel {
   // Always 4 slots
   @override
   final String? gameId;
+  // Set when game starts
+  @override
+  @JsonKey()
+  final String team0Name;
+  @override
+  @JsonKey()
+  final String team1Name;
+  @override
+  final String? team0EditingBy;
+  // userId of player currently editing team 0 name
+  @override
+  final String? team1EditingBy;
 
   @override
   String toString() {
-    return 'LobbyModel(id: $id, hostUserId: $hostUserId, hostUsername: $hostUsername, code: $code, status: $status, createdAt: $createdAt, players: $players, gameId: $gameId)';
+    return 'LobbyModel(id: $id, hostUserId: $hostUserId, hostUsername: $hostUsername, code: $code, status: $status, createdAt: $createdAt, players: $players, gameId: $gameId, team0Name: $team0Name, team1Name: $team1Name, team0EditingBy: $team0EditingBy, team1EditingBy: $team1EditingBy)';
   }
 
   @override
@@ -544,7 +614,15 @@ class _$LobbyModelImpl implements _LobbyModel {
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             const DeepCollectionEquality().equals(other._players, _players) &&
-            (identical(other.gameId, gameId) || other.gameId == gameId));
+            (identical(other.gameId, gameId) || other.gameId == gameId) &&
+            (identical(other.team0Name, team0Name) ||
+                other.team0Name == team0Name) &&
+            (identical(other.team1Name, team1Name) ||
+                other.team1Name == team1Name) &&
+            (identical(other.team0EditingBy, team0EditingBy) ||
+                other.team0EditingBy == team0EditingBy) &&
+            (identical(other.team1EditingBy, team1EditingBy) ||
+                other.team1EditingBy == team1EditingBy));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -559,6 +637,10 @@ class _$LobbyModelImpl implements _LobbyModel {
     createdAt,
     const DeepCollectionEquality().hash(_players),
     gameId,
+    team0Name,
+    team1Name,
+    team0EditingBy,
+    team1EditingBy,
   );
 
   /// Create a copy of LobbyModel
@@ -585,6 +667,10 @@ abstract class _LobbyModel implements LobbyModel {
     required final DateTime createdAt,
     required final List<PlayerSlot> players,
     final String? gameId,
+    final String team0Name,
+    final String team1Name,
+    final String? team0EditingBy,
+    final String? team1EditingBy,
   }) = _$LobbyModelImpl;
 
   factory _LobbyModel.fromJson(Map<String, dynamic> json) =
@@ -605,7 +691,15 @@ abstract class _LobbyModel implements LobbyModel {
   @override
   List<PlayerSlot> get players; // Always 4 slots
   @override
-  String? get gameId;
+  String? get gameId; // Set when game starts
+  @override
+  String get team0Name;
+  @override
+  String get team1Name;
+  @override
+  String? get team0EditingBy; // userId of player currently editing team 0 name
+  @override
+  String? get team1EditingBy;
 
   /// Create a copy of LobbyModel
   /// with the given fields replaced by the non-null parameter values.

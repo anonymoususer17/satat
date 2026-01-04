@@ -372,6 +372,122 @@ class LobbyRepository {
     }
   }
 
+  /// Lock team name for editing
+  Future<void> lockTeamNameEdit({
+    required String lobbyId,
+    required int team,
+    required String userId,
+  }) async {
+    try {
+      final lobbyRef = _firestore.collection('lobbies').doc(lobbyId);
+      final lobbyDoc = await lobbyRef.get();
+
+      if (!lobbyDoc.exists) {
+        throw Exception('Lobby not found');
+      }
+
+      final lobby = _lobbyFromFirestore(lobbyDoc);
+
+      if (team != 0 && team != 1) {
+        throw Exception('Invalid team number');
+      }
+
+      // Check if already locked by someone else
+      final currentEditor = team == 0 ? lobby.team0EditingBy : lobby.team1EditingBy;
+      if (currentEditor != null && currentEditor != userId) {
+        throw Exception('Team name is currently being edited by teammate');
+      }
+
+      // Lock the team name for this user
+      await lobbyRef.update({
+        team == 0 ? 'team0EditingBy' : 'team1EditingBy': userId,
+      });
+    } catch (e) {
+      throw Exception('Failed to lock team name: ${e.toString()}');
+    }
+  }
+
+  /// Update team name and release lock
+  Future<void> updateTeamName({
+    required String lobbyId,
+    required int team,
+    required String newName,
+    required String userId,
+  }) async {
+    try {
+      final lobbyRef = _firestore.collection('lobbies').doc(lobbyId);
+      final lobbyDoc = await lobbyRef.get();
+
+      if (!lobbyDoc.exists) {
+        throw Exception('Lobby not found');
+      }
+
+      final lobby = _lobbyFromFirestore(lobbyDoc);
+
+      if (team != 0 && team != 1) {
+        throw Exception('Invalid team number');
+      }
+
+      // Validate user is the one who locked it
+      final currentEditor = team == 0 ? lobby.team0EditingBy : lobby.team1EditingBy;
+      if (currentEditor != userId) {
+        throw Exception('You do not have permission to edit this team name');
+      }
+
+      // Validate team name
+      final trimmedName = newName.trim();
+      if (trimmedName.isEmpty) {
+        throw Exception('Team name cannot be empty');
+      }
+      if (trimmedName.length > 20) {
+        throw Exception('Team name cannot exceed 20 characters');
+      }
+
+      // Update team name and release lock
+      await lobbyRef.update({
+        team == 0 ? 'team0Name' : 'team1Name': trimmedName,
+        team == 0 ? 'team0EditingBy' : 'team1EditingBy': null,
+      });
+    } catch (e) {
+      throw Exception('Failed to update team name: ${e.toString()}');
+    }
+  }
+
+  /// Cancel team name edit and release lock
+  Future<void> cancelTeamNameEdit({
+    required String lobbyId,
+    required int team,
+    required String userId,
+  }) async {
+    try {
+      final lobbyRef = _firestore.collection('lobbies').doc(lobbyId);
+      final lobbyDoc = await lobbyRef.get();
+
+      if (!lobbyDoc.exists) {
+        throw Exception('Lobby not found');
+      }
+
+      final lobby = _lobbyFromFirestore(lobbyDoc);
+
+      if (team != 0 && team != 1) {
+        throw Exception('Invalid team number');
+      }
+
+      // Validate user is the one who locked it
+      final currentEditor = team == 0 ? lobby.team0EditingBy : lobby.team1EditingBy;
+      if (currentEditor != userId) {
+        throw Exception('You do not have permission to cancel this edit');
+      }
+
+      // Release lock without changing name
+      await lobbyRef.update({
+        team == 0 ? 'team0EditingBy' : 'team1EditingBy': null,
+      });
+    } catch (e) {
+      throw Exception('Failed to cancel team name edit: ${e.toString()}');
+    }
+  }
+
   /// Convert LobbyModel to Firestore format
   Map<String, dynamic> _lobbyToFirestore(LobbyModel lobby) {
     return {
@@ -383,6 +499,10 @@ class LobbyRepository {
       'createdAt': FieldValue.serverTimestamp(),
       'players': lobby.players.map((p) => _playerSlotToMap(p)).toList(),
       'gameId': lobby.gameId,
+      'team0Name': lobby.team0Name,
+      'team1Name': lobby.team1Name,
+      'team0EditingBy': lobby.team0EditingBy,
+      'team1EditingBy': lobby.team1EditingBy,
     };
   }
 
@@ -427,6 +547,10 @@ class LobbyRepository {
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       players: players,
       gameId: data['gameId'] as String?,
+      team0Name: data['team0Name'] as String? ?? 'Team 1',
+      team1Name: data['team1Name'] as String? ?? 'Team 2',
+      team0EditingBy: data['team0EditingBy'] as String?,
+      team1EditingBy: data['team1EditingBy'] as String?,
     );
   }
 }

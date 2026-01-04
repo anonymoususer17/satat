@@ -163,6 +163,56 @@ class LobbyController extends StateNotifier<AsyncValue<void>> {
       );
     });
   }
+
+  /// Lock team name for editing
+  Future<void> lockTeamNameEdit({
+    required String lobbyId,
+    required int team,
+    required String userId,
+  }) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      await _lobbyRepository.lockTeamNameEdit(
+        lobbyId: lobbyId,
+        team: team,
+        userId: userId,
+      );
+    });
+  }
+
+  /// Update team name
+  Future<void> updateTeamName({
+    required String lobbyId,
+    required int team,
+    required String newName,
+    required String userId,
+  }) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      await _lobbyRepository.updateTeamName(
+        lobbyId: lobbyId,
+        team: team,
+        newName: newName,
+        userId: userId,
+      );
+    });
+  }
+
+  /// Cancel team name edit
+  Future<void> cancelTeamNameEdit({
+    required String lobbyId,
+    required int team,
+    required String userId,
+  }) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      await _lobbyRepository.cancelTeamNameEdit(
+        lobbyId: lobbyId,
+        team: team,
+        userId: userId,
+      );
+    });
+  }
 }
 
 /// Provider for LobbyController

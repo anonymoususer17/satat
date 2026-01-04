@@ -555,6 +555,8 @@ mixin _$GameModel {
       throw _privateConstructorUsedError; // History of tricks
   int get team0TricksWon => throw _privateConstructorUsedError;
   int get team1TricksWon => throw _privateConstructorUsedError;
+  String get team0Name => throw _privateConstructorUsedError;
+  String get team1Name => throw _privateConstructorUsedError;
   GameResult? get result =>
       throw _privateConstructorUsedError; // null until game ends
   DateTime get createdAt => throw _privateConstructorUsedError;
@@ -593,6 +595,8 @@ abstract class $GameModelCopyWith<$Res> {
     List<TrickModel> completedTricks,
     int team0TricksWon,
     int team1TricksWon,
+    String team0Name,
+    String team1Name,
     GameResult? result,
     DateTime createdAt,
     DateTime? endedAt,
@@ -631,6 +635,8 @@ class _$GameModelCopyWithImpl<$Res, $Val extends GameModel>
     Object? completedTricks = null,
     Object? team0TricksWon = null,
     Object? team1TricksWon = null,
+    Object? team0Name = null,
+    Object? team1Name = null,
     Object? result = freezed,
     Object? createdAt = null,
     Object? endedAt = freezed,
@@ -684,6 +690,14 @@ class _$GameModelCopyWithImpl<$Res, $Val extends GameModel>
                 ? _value.team1TricksWon
                 : team1TricksWon // ignore: cast_nullable_to_non_nullable
                       as int,
+            team0Name: null == team0Name
+                ? _value.team0Name
+                : team0Name // ignore: cast_nullable_to_non_nullable
+                      as String,
+            team1Name: null == team1Name
+                ? _value.team1Name
+                : team1Name // ignore: cast_nullable_to_non_nullable
+                      as String,
             result: freezed == result
                 ? _value.result
                 : result // ignore: cast_nullable_to_non_nullable
@@ -763,6 +777,8 @@ abstract class _$$GameModelImplCopyWith<$Res>
     List<TrickModel> completedTricks,
     int team0TricksWon,
     int team1TricksWon,
+    String team0Name,
+    String team1Name,
     GameResult? result,
     DateTime createdAt,
     DateTime? endedAt,
@@ -802,6 +818,8 @@ class __$$GameModelImplCopyWithImpl<$Res>
     Object? completedTricks = null,
     Object? team0TricksWon = null,
     Object? team1TricksWon = null,
+    Object? team0Name = null,
+    Object? team1Name = null,
     Object? result = freezed,
     Object? createdAt = null,
     Object? endedAt = freezed,
@@ -855,6 +873,14 @@ class __$$GameModelImplCopyWithImpl<$Res>
             ? _value.team1TricksWon
             : team1TricksWon // ignore: cast_nullable_to_non_nullable
                   as int,
+        team0Name: null == team0Name
+            ? _value.team0Name
+            : team0Name // ignore: cast_nullable_to_non_nullable
+                  as String,
+        team1Name: null == team1Name
+            ? _value.team1Name
+            : team1Name // ignore: cast_nullable_to_non_nullable
+                  as String,
         result: freezed == result
             ? _value.result
             : result // ignore: cast_nullable_to_non_nullable
@@ -899,6 +925,8 @@ class _$GameModelImpl extends _GameModel {
     required final List<TrickModel> completedTricks,
     required this.team0TricksWon,
     required this.team1TricksWon,
+    this.team0Name = 'Team 1',
+    this.team1Name = 'Team 2',
     this.result,
     required this.createdAt,
     this.endedAt,
@@ -956,6 +984,12 @@ class _$GameModelImpl extends _GameModel {
   @override
   final int team1TricksWon;
   @override
+  @JsonKey()
+  final String team0Name;
+  @override
+  @JsonKey()
+  final String team1Name;
+  @override
   final GameResult? result;
   // null until game ends
   @override
@@ -994,7 +1028,7 @@ class _$GameModelImpl extends _GameModel {
 
   @override
   String toString() {
-    return 'GameModel(id: $id, lobbyId: $lobbyId, phase: $phase, players: $players, dealerPosition: $dealerPosition, trumpMakerPosition: $trumpMakerPosition, trumpSuit: $trumpSuit, currentTrick: $currentTrick, completedTricks: $completedTricks, team0TricksWon: $team0TricksWon, team1TricksWon: $team1TricksWon, result: $result, createdAt: $createdAt, endedAt: $endedAt, trumpMakerFirstFive: $trumpMakerFirstFive, trumpMakerLastFour: $trumpMakerLastFour, reshuffleCount: $reshuffleCount)';
+    return 'GameModel(id: $id, lobbyId: $lobbyId, phase: $phase, players: $players, dealerPosition: $dealerPosition, trumpMakerPosition: $trumpMakerPosition, trumpSuit: $trumpSuit, currentTrick: $currentTrick, completedTricks: $completedTricks, team0TricksWon: $team0TricksWon, team1TricksWon: $team1TricksWon, team0Name: $team0Name, team1Name: $team1Name, result: $result, createdAt: $createdAt, endedAt: $endedAt, trumpMakerFirstFive: $trumpMakerFirstFive, trumpMakerLastFour: $trumpMakerLastFour, reshuffleCount: $reshuffleCount)';
   }
 
   @override
@@ -1022,6 +1056,10 @@ class _$GameModelImpl extends _GameModel {
                 other.team0TricksWon == team0TricksWon) &&
             (identical(other.team1TricksWon, team1TricksWon) ||
                 other.team1TricksWon == team1TricksWon) &&
+            (identical(other.team0Name, team0Name) ||
+                other.team0Name == team0Name) &&
+            (identical(other.team1Name, team1Name) ||
+                other.team1Name == team1Name) &&
             (identical(other.result, result) || other.result == result) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
@@ -1040,7 +1078,7 @@ class _$GameModelImpl extends _GameModel {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
     id,
     lobbyId,
@@ -1053,13 +1091,15 @@ class _$GameModelImpl extends _GameModel {
     const DeepCollectionEquality().hash(_completedTricks),
     team0TricksWon,
     team1TricksWon,
+    team0Name,
+    team1Name,
     result,
     createdAt,
     endedAt,
     const DeepCollectionEquality().hash(_trumpMakerFirstFive),
     const DeepCollectionEquality().hash(_trumpMakerLastFour),
     reshuffleCount,
-  );
+  ]);
 
   /// Create a copy of GameModel
   /// with the given fields replaced by the non-null parameter values.
@@ -1088,6 +1128,8 @@ abstract class _GameModel extends GameModel {
     required final List<TrickModel> completedTricks,
     required final int team0TricksWon,
     required final int team1TricksWon,
+    final String team0Name,
+    final String team1Name,
     final GameResult? result,
     required final DateTime createdAt,
     final DateTime? endedAt,
@@ -1122,6 +1164,10 @@ abstract class _GameModel extends GameModel {
   int get team0TricksWon;
   @override
   int get team1TricksWon;
+  @override
+  String get team0Name;
+  @override
+  String get team1Name;
   @override
   GameResult? get result; // null until game ends
   @override

@@ -75,6 +75,8 @@ class GameModel with _$GameModel {
     required List<TrickModel> completedTricks, // History of tricks
     required int team0TricksWon,
     required int team1TricksWon,
+    @Default('Team 1') String team0Name,
+    @Default('Team 2') String team1Name,
     GameResult? result, // null until game ends
     required DateTime createdAt,
     DateTime? endedAt,
@@ -139,6 +141,8 @@ GameModel createGameFromLobby({
   required String lobbyId,
   required List<Map<String, dynamic>> lobbyPlayers, // Players from lobby
   required int dealerPosition,
+  String team0Name = 'Team 1',
+  String team1Name = 'Team 2',
 }) {
   // Create game players from lobby players
   final gamePlayers = <GamePlayer>[];
@@ -166,6 +170,8 @@ GameModel createGameFromLobby({
     completedTricks: [],
     team0TricksWon: 0,
     team1TricksWon: 0,
+    team0Name: team0Name,
+    team1Name: team1Name,
     result: null,
     createdAt: DateTime.now(),
     endedAt: null,

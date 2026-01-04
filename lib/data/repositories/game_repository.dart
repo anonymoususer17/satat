@@ -20,6 +20,8 @@ class GameRepository {
     required String lobbyId,
     required List<Map<String, dynamic>> lobbyPlayers,
     required int dealerPosition,
+    String team0Name = 'Team 1',
+    String team1Name = 'Team 2',
   }) async {
     try {
       final gameRef = _firestore.collection('games').doc();
@@ -30,6 +32,8 @@ class GameRepository {
         lobbyId: lobbyId,
         lobbyPlayers: lobbyPlayers,
         dealerPosition: dealerPosition,
+        team0Name: team0Name,
+        team1Name: team1Name,
       );
 
       // Deal cards
