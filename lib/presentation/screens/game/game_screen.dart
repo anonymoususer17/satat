@@ -139,8 +139,11 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           child: _buildGameArea(context, game, currentPlayer),
         ),
 
-        // Current player's hand
-        _buildPlayerHand(context, ref, game, currentPlayer, isMyTurn),
+        // Show win screen OR player's hand (not both)
+        if (game.result != null)
+          _buildGameResult(context, game)
+        else
+          _buildPlayerHand(context, ref, game, currentPlayer, isMyTurn),
       ],
     );
   }
@@ -393,8 +396,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                   ),
                 ),
 
-              // Game result
-              if (game.result != null) _buildGameResult(context, game),
             ],
           ),
         );
@@ -539,60 +540,85 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         resultIcon = Icons.emoji_events;
     }
 
-    return SingleChildScrollView(
-      child: Container(
-        padding: const EdgeInsets.all(AppTheme.spacingMedium),
-        margin: const EdgeInsets.all(AppTheme.spacingMedium),
-        decoration: BoxDecoration(
-          color: AppTheme.accentColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: AppTheme.primaryColor,
-            width: 3,
+    return Container(
+      height: 200, // Slightly less than player hand height
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTheme.spacingMedium,
+        vertical: AppTheme.spacingSmall,
+      ),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppTheme.spacingLarge,
+            vertical: AppTheme.spacingMedium,
           ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              resultIcon,
-              size: 56,
-              color: AppTheme.textPrimaryColor,
+          decoration: BoxDecoration(
+            color: AppTheme.accentColor,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: AppTheme.primaryColor,
+              width: 3,
             ),
-            const SizedBox(height: AppTheme.spacingSmall),
-            Text(
-              '$winningTeamName Wins!',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: AppTheme.textPrimaryColor,
-                    fontWeight: FontWeight.bold,
-                  ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppTheme.spacingSmall),
-            Text(
-              resultMessage,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    resultIcon,
+                    size: 48,
                     color: AppTheme.textPrimaryColor,
                   ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppTheme.spacingSmall),
-            Text(
-              'Final Score: ${result.team0Tricks} - ${result.team1Tricks}',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: AppTheme.textPrimaryColor,
-                  ),
-            ),
-            if (result.callerPosition != null) ...[
-              const SizedBox(height: AppTheme.spacingSmall),
-              Text(
-                'Called by: ${game.getPlayerByPosition(result.callerPosition!).displayName}',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppTheme.textPrimaryColor,
+                  const SizedBox(width: AppTheme.spacingMedium),
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '$winningTeamName Wins!',
+                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                color: AppTheme.textPrimaryColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          resultMessage,
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                color: AppTheme.textPrimaryColor,
+                              ),
+                        ),
+                      ],
                     ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppTheme.spacingSmall),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Score: ${result.team0Tricks} - ${result.team1Tricks}',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: AppTheme.textPrimaryColor,
+                        ),
+                  ),
+                  if (result.callerPosition != null) ...[
+                    const SizedBox(width: AppTheme.spacingMedium),
+                    Text(
+                      '• ${game.getPlayerByPosition(result.callerPosition!).displayName}',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: AppTheme.textPrimaryColor,
+                          ),
+                    ),
+                  ],
+                ],
               ),
             ],
-          ],
+          ),
         ),
       ),
     );
