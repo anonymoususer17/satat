@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'card_draw_model.dart';
 
 part 'lobby_model.freezed.dart';
 part 'lobby_model.g.dart';
@@ -43,6 +44,8 @@ class LobbyModel with _$LobbyModel {
     @Default('Team 2') String team1Name,
     String? team0EditingBy, // userId of player currently editing team 0 name
     String? team1EditingBy, // userId of player currently editing team 1 name
+    @Default(false) bool cardDrawStarted, // Card draw phase initiated
+    CardDrawModel? cardDraw, // Card draw state (null until started)
   }) = _LobbyModel;
 
   factory LobbyModel.fromJson(Map<String, dynamic> json) =>

@@ -91,6 +91,29 @@ class GameController extends StateNotifier<GameControllerState> {
     }
   }
 
+  /// Create a game from card draw results
+  /// The winning team from card draw becomes the dealer's team
+  Future<GameModel?> createGameFromCardDraw({
+    required String lobbyId,
+    required List<Map<String, dynamic>> lobbyPlayers,
+    required int winningTeam,
+    String team0Name = 'Team 1',
+    String team1Name = 'Team 2',
+  }) async {
+    // Determine dealer position from winning team
+    // Team 0 (positions 0 & 2) starts → dealer = position 0
+    // Team 1 (positions 1 & 3) starts → dealer = position 1
+    final dealerPosition = winningTeam == 0 ? 0 : 1;
+
+    return createGame(
+      lobbyId: lobbyId,
+      lobbyPlayers: lobbyPlayers,
+      dealerPosition: dealerPosition,
+      team0Name: team0Name,
+      team1Name: team1Name,
+    );
+  }
+
   /// Select trump suit
   Future<void> selectTrump({
     required String gameId,

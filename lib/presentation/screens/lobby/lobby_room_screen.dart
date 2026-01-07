@@ -6,7 +6,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../data/models/lobby_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/lobby_provider.dart';
-import '../../providers/game_provider.dart';
+import '../../providers/card_draw_provider.dart';
 
 class LobbyRoomScreen extends ConsumerWidget {
   final String lobbyId;
@@ -344,42 +344,13 @@ class LobbyRoomScreen extends ConsumerWidget {
 
   Future<void> _startGame(BuildContext context, WidgetRef ref, String lobbyId) async {
     try {
-      // Get lobby data to create game
-      final lobbyAsync = ref.read(lobbyProvider(lobbyId));
-      final lobby = lobbyAsync.value;
+      // Start card draw phase
+      final cardDrawController = ref.read(cardDrawControllerProvider.notifier);
+      await cardDrawController.startCardDraw(lobbyId);
 
-      if (lobby == null) {
-        throw Exception('Lobby not found');
-      }
-
-      // Prepare lobby players data for game creation
-      final lobbyPlayers = lobby.players.map((p) => {
-            'userId': p.userId,
-            'username': p.username ?? 'Unknown',
-            'displayName': p.displayName ?? p.username ?? 'Unknown',
-            'isBot': p.isBot,
-          }).toList();
-
-      // Create game (dealer is position 0 for first game)
-      final gameController = ref.read(gameControllerProvider.notifier);
-      final game = await gameController.createGame(
-        lobbyId: lobbyId,
-        lobbyPlayers: lobbyPlayers,
-        dealerPosition: 0,
-        team0Name: lobby.team0Name,
-        team1Name: lobby.team1Name,
-      );
-
-      if (game != null && context.mounted) {
-        // Navigate to game screen
-        context.push('/game/${game.id}');
-      } else if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to create game'),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
+      if (context.mounted) {
+        // Navigate to card draw screen
+        context.push('/card-draw/$lobbyId');
       }
     } catch (e) {
       if (context.mounted) {

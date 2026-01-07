@@ -206,4 +206,12 @@ class BotAIService {
     // TODO: Make this more strategic based on hand strength
     return true;
   }
+
+  /// Select a random card for card draw phase
+  CardModel selectCardForDraw(List<CardModel> availableCards) {
+    if (availableCards.isEmpty) {
+      throw Exception('No cards available to select');
+    }
+    return availableCards[_random.nextInt(availableCards.length)];
+  }
 }

@@ -310,7 +310,11 @@ mixin _$LobbyModel {
   String get team1Name => throw _privateConstructorUsedError;
   String? get team0EditingBy =>
       throw _privateConstructorUsedError; // userId of player currently editing team 0 name
-  String? get team1EditingBy => throw _privateConstructorUsedError;
+  String? get team1EditingBy =>
+      throw _privateConstructorUsedError; // userId of player currently editing team 1 name
+  bool get cardDrawStarted =>
+      throw _privateConstructorUsedError; // Card draw phase initiated
+  CardDrawModel? get cardDraw => throw _privateConstructorUsedError;
 
   /// Serializes this LobbyModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -342,7 +346,11 @@ abstract class $LobbyModelCopyWith<$Res> {
     String team1Name,
     String? team0EditingBy,
     String? team1EditingBy,
+    bool cardDrawStarted,
+    CardDrawModel? cardDraw,
   });
+
+  $CardDrawModelCopyWith<$Res>? get cardDraw;
 }
 
 /// @nodoc
@@ -372,6 +380,8 @@ class _$LobbyModelCopyWithImpl<$Res, $Val extends LobbyModel>
     Object? team1Name = null,
     Object? team0EditingBy = freezed,
     Object? team1EditingBy = freezed,
+    Object? cardDrawStarted = null,
+    Object? cardDraw = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -423,9 +433,31 @@ class _$LobbyModelCopyWithImpl<$Res, $Val extends LobbyModel>
                 ? _value.team1EditingBy
                 : team1EditingBy // ignore: cast_nullable_to_non_nullable
                       as String?,
+            cardDrawStarted: null == cardDrawStarted
+                ? _value.cardDrawStarted
+                : cardDrawStarted // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            cardDraw: freezed == cardDraw
+                ? _value.cardDraw
+                : cardDraw // ignore: cast_nullable_to_non_nullable
+                      as CardDrawModel?,
           )
           as $Val,
     );
+  }
+
+  /// Create a copy of LobbyModel
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $CardDrawModelCopyWith<$Res>? get cardDraw {
+    if (_value.cardDraw == null) {
+      return null;
+    }
+
+    return $CardDrawModelCopyWith<$Res>(_value.cardDraw!, (value) {
+      return _then(_value.copyWith(cardDraw: value) as $Val);
+    });
   }
 }
 
@@ -451,7 +483,12 @@ abstract class _$$LobbyModelImplCopyWith<$Res>
     String team1Name,
     String? team0EditingBy,
     String? team1EditingBy,
+    bool cardDrawStarted,
+    CardDrawModel? cardDraw,
   });
+
+  @override
+  $CardDrawModelCopyWith<$Res>? get cardDraw;
 }
 
 /// @nodoc
@@ -480,6 +517,8 @@ class __$$LobbyModelImplCopyWithImpl<$Res>
     Object? team1Name = null,
     Object? team0EditingBy = freezed,
     Object? team1EditingBy = freezed,
+    Object? cardDrawStarted = null,
+    Object? cardDraw = freezed,
   }) {
     return _then(
       _$LobbyModelImpl(
@@ -531,6 +570,14 @@ class __$$LobbyModelImplCopyWithImpl<$Res>
             ? _value.team1EditingBy
             : team1EditingBy // ignore: cast_nullable_to_non_nullable
                   as String?,
+        cardDrawStarted: null == cardDrawStarted
+            ? _value.cardDrawStarted
+            : cardDrawStarted // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        cardDraw: freezed == cardDraw
+            ? _value.cardDraw
+            : cardDraw // ignore: cast_nullable_to_non_nullable
+                  as CardDrawModel?,
       ),
     );
   }
@@ -552,6 +599,8 @@ class _$LobbyModelImpl implements _LobbyModel {
     this.team1Name = 'Team 2',
     this.team0EditingBy,
     this.team1EditingBy,
+    this.cardDrawStarted = false,
+    this.cardDraw,
   }) : _players = players;
 
   factory _$LobbyModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -593,10 +642,17 @@ class _$LobbyModelImpl implements _LobbyModel {
   // userId of player currently editing team 0 name
   @override
   final String? team1EditingBy;
+  // userId of player currently editing team 1 name
+  @override
+  @JsonKey()
+  final bool cardDrawStarted;
+  // Card draw phase initiated
+  @override
+  final CardDrawModel? cardDraw;
 
   @override
   String toString() {
-    return 'LobbyModel(id: $id, hostUserId: $hostUserId, hostUsername: $hostUsername, code: $code, status: $status, createdAt: $createdAt, players: $players, gameId: $gameId, team0Name: $team0Name, team1Name: $team1Name, team0EditingBy: $team0EditingBy, team1EditingBy: $team1EditingBy)';
+    return 'LobbyModel(id: $id, hostUserId: $hostUserId, hostUsername: $hostUsername, code: $code, status: $status, createdAt: $createdAt, players: $players, gameId: $gameId, team0Name: $team0Name, team1Name: $team1Name, team0EditingBy: $team0EditingBy, team1EditingBy: $team1EditingBy, cardDrawStarted: $cardDrawStarted, cardDraw: $cardDraw)';
   }
 
   @override
@@ -622,7 +678,11 @@ class _$LobbyModelImpl implements _LobbyModel {
             (identical(other.team0EditingBy, team0EditingBy) ||
                 other.team0EditingBy == team0EditingBy) &&
             (identical(other.team1EditingBy, team1EditingBy) ||
-                other.team1EditingBy == team1EditingBy));
+                other.team1EditingBy == team1EditingBy) &&
+            (identical(other.cardDrawStarted, cardDrawStarted) ||
+                other.cardDrawStarted == cardDrawStarted) &&
+            (identical(other.cardDraw, cardDraw) ||
+                other.cardDraw == cardDraw));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -641,6 +701,8 @@ class _$LobbyModelImpl implements _LobbyModel {
     team1Name,
     team0EditingBy,
     team1EditingBy,
+    cardDrawStarted,
+    cardDraw,
   );
 
   /// Create a copy of LobbyModel
@@ -671,6 +733,8 @@ abstract class _LobbyModel implements LobbyModel {
     final String team1Name,
     final String? team0EditingBy,
     final String? team1EditingBy,
+    final bool cardDrawStarted,
+    final CardDrawModel? cardDraw,
   }) = _$LobbyModelImpl;
 
   factory _LobbyModel.fromJson(Map<String, dynamic> json) =
@@ -699,7 +763,11 @@ abstract class _LobbyModel implements LobbyModel {
   @override
   String? get team0EditingBy; // userId of player currently editing team 0 name
   @override
-  String? get team1EditingBy;
+  String? get team1EditingBy; // userId of player currently editing team 1 name
+  @override
+  bool get cardDrawStarted; // Card draw phase initiated
+  @override
+  CardDrawModel? get cardDraw;
 
   /// Create a copy of LobbyModel
   /// with the given fields replaced by the non-null parameter values.

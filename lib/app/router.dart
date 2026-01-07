@@ -8,6 +8,8 @@ import '../presentation/screens/friends/friends_screen.dart';
 import '../presentation/screens/lobby/lobby_list_screen.dart';
 import '../presentation/screens/lobby/lobby_room_screen.dart';
 import '../presentation/screens/game/game_screen.dart';
+import '../presentation/screens/card_draw/card_draw_screen.dart';
+import '../presentation/screens/card_draw/card_draw_result_screen.dart';
 
 /// Router configuration for the app
 final routerProvider = Provider<GoRouter>((ref) {
@@ -65,6 +67,22 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final lobbyId = state.pathParameters['id']!;
           return LobbyRoomScreen(lobbyId: lobbyId);
+        },
+      ),
+      GoRoute(
+        path: '/card-draw/:lobbyId',
+        name: 'card-draw',
+        builder: (context, state) {
+          final lobbyId = state.pathParameters['lobbyId']!;
+          return CardDrawScreen(lobbyId: lobbyId);
+        },
+      ),
+      GoRoute(
+        path: '/card-draw-result/:lobbyId',
+        name: 'card-draw-result',
+        builder: (context, state) {
+          final lobbyId = state.pathParameters['lobbyId']!;
+          return CardDrawResultScreen(lobbyId: lobbyId);
         },
       ),
       GoRoute(

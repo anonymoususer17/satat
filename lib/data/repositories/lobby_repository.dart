@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/lobby_model.dart';
+import '../models/card_draw_model.dart';
+import '../models/card_model.dart';
 
 /// Repository for lobby operations
 class LobbyRepository {
@@ -503,6 +505,34 @@ class LobbyRepository {
       'team1Name': lobby.team1Name,
       'team0EditingBy': lobby.team0EditingBy,
       'team1EditingBy': lobby.team1EditingBy,
+      'cardDrawStarted': lobby.cardDrawStarted,
+      'cardDraw': lobby.cardDraw != null ? _cardDrawToMap(lobby.cardDraw!) : null,
+    };
+  }
+
+  /// Convert CardDrawModel to Firestore map
+  Map<String, dynamic> _cardDrawToMap(cardDraw) {
+    return {
+      'availableCards': cardDraw.availableCards
+          .map((c) => _cardToMap(c))
+          .toList(),
+      'playerPicks': cardDraw.playerPicks.map(
+        (position, card) => MapEntry(
+          position.toString(),
+          card != null ? _cardToMap(card) : null,
+        ),
+      ),
+      'isComplete': cardDraw.isComplete,
+      'winningPosition': cardDraw.winningPosition,
+      'winningTeam': cardDraw.winningTeam,
+    };
+  }
+
+  /// Convert CardModel to Firestore map
+  Map<String, dynamic> _cardToMap(card) {
+    return {
+      'suit': card.suit.name,
+      'rank': card.rank.name,
     };
   }
 
@@ -535,6 +565,11 @@ class LobbyRepository {
       );
     }).toList();
 
+    final cardDrawData = data['cardDraw'] as Map<String, dynamic>?;
+    final cardDraw = cardDrawData != null
+        ? _cardDrawFromMap(cardDrawData)
+        : null;
+
     return LobbyModel(
       id: doc.id,
       hostUserId: data['hostUserId'] as String,
@@ -551,6 +586,41 @@ class LobbyRepository {
       team1Name: data['team1Name'] as String? ?? 'Team 2',
       team0EditingBy: data['team0EditingBy'] as String?,
       team1EditingBy: data['team1EditingBy'] as String?,
+      cardDrawStarted: data['cardDrawStarted'] as bool? ?? false,
+      cardDraw: cardDraw,
+    );
+  }
+
+  /// Convert Firestore map to CardDrawModel
+  CardDrawModel _cardDrawFromMap(Map<String, dynamic> map) {
+    final availableCards = (map['availableCards'] as List<dynamic>)
+        .map((c) => _cardFromMap(c as Map<String, dynamic>))
+        .toList();
+
+    final playerPicksMap = map['playerPicks'] as Map<String, dynamic>;
+    final playerPicks = <int, CardModel?>{};
+
+    for (int i = 0; i < 4; i++) {
+      final cardMap = playerPicksMap[i.toString()];
+      playerPicks[i] = cardMap != null
+          ? _cardFromMap(cardMap as Map<String, dynamic>)
+          : null;
+    }
+
+    return CardDrawModel(
+      availableCards: availableCards,
+      playerPicks: playerPicks,
+      isComplete: map['isComplete'] as bool,
+      winningPosition: map['winningPosition'] as int?,
+      winningTeam: map['winningTeam'] as int?,
+    );
+  }
+
+  /// Convert Firestore map to CardModel
+  CardModel _cardFromMap(Map<String, dynamic> map) {
+    return CardModel(
+      suit: CardSuit.values.firstWhere((e) => e.name == map['suit']),
+      rank: CardRank.values.firstWhere((e) => e.name == map['rank']),
     );
   }
 }
