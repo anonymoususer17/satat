@@ -69,12 +69,14 @@ class BotAIService {
     required TrickModel trick,
     required CardSuit trumpSuit,
     required int botTeam,
+    required Map<int, List<String>> playerSuitClaims,
   }) {
     // Get all valid cards bot can play
     final validCards = _gameLogic.getValidCards(
       player: bot,
       trick: trick,
       trumpSuit: trumpSuit,
+      playerSuitClaims: playerSuitClaims,
     );
 
     if (validCards.isEmpty) {

@@ -127,6 +127,7 @@ class BotControllerService {
       trick: game.currentTrick!,
       trumpSuit: game.trumpSuit!,
       botTeam: currentPlayer.team,
+      playerSuitClaims: game.playerSuitClaims,
     );
 
     // Play the card using position (since bots don't have userId)

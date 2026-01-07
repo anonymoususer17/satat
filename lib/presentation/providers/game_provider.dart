@@ -185,6 +185,28 @@ class GameController extends StateNotifier<GameControllerState> {
     }
   }
 
+  /// Call out the opposing team for cheating
+  Future<void> callOutOpposingTeam({
+    required String gameId,
+    required String userId,
+  }) async {
+    try {
+      state = state.copyWith(isLoading: true, error: null);
+
+      await _repository.callOutOpposingTeam(
+        gameId: gameId,
+        userId: userId,
+      );
+
+      state = state.copyWith(isLoading: false);
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+    }
+  }
+
   /// Clear error state
   void clearError() {
     state = state.copyWith(error: null);

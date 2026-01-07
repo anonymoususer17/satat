@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/card_model.dart';
 import '../models/trick_model.dart';
 import '../models/game_model.dart';
+import '../../core/constants/game_constants.dart';
 import '../../domain/services/game_logic_service.dart';
 
 /// Repository for game operations
@@ -164,16 +165,30 @@ class GameRepository {
         throw Exception('Player not found in game');
       }
 
-      // Validate card play
-      final error = _gameLogic.validateCardPlay(
+      // Validate card play (NEW validation system)
+      final validation = _gameLogic.validateCardPlay(
         card: card,
         player: player,
         trick: game.currentTrick!,
         trumpSuit: game.trumpSuit!,
+        playerSuitClaims: game.playerSuitClaims,
       );
 
-      if (error != null) {
-        throw Exception(error);
+      // Only forbid truly forbidden plays
+      if (validation.status == CardPlayStatus.forbidden) {
+        throw Exception(validation.errorMessage);
+      }
+
+      // Track suit claim if cheating
+      Map<int, List<String>> updatedSuitClaims = Map.from(game.playerSuitClaims);
+      if (validation.isCheating && validation.claimedNotToHave != null) {
+        final playerClaims = List<String>.from(
+          updatedSuitClaims[player.position] ?? [],
+        );
+        if (!playerClaims.contains(validation.claimedNotToHave!.name)) {
+          playerClaims.add(validation.claimedNotToHave!.name);
+        }
+        updatedSuitClaims[player.position] = playerClaims;
       }
 
       // Add card to trick
@@ -195,6 +210,9 @@ class GameRepository {
       Map<String, dynamic> updateData = {
         'players': updatedPlayers.map((p) => _playerToMap(p)).toList(),
         'currentTrick': _trickToMap(updatedTrick),
+        'playerSuitClaims': updatedSuitClaims.map(
+          (position, suits) => MapEntry(position.toString(), suits),
+        ),
       };
 
       // Check if trick is complete
@@ -335,6 +353,67 @@ class GameRepository {
     }
   }
 
+  /// Call out the opposing team for cheating
+  Future<void> callOutOpposingTeam({
+    required String gameId,
+    required String userId,
+  }) async {
+    try {
+      final gameRef = _firestore.collection('games').doc(gameId);
+      final gameDoc = await gameRef.get();
+
+      if (!gameDoc.exists) {
+        throw Exception('Game not found');
+      }
+
+      final game = _gameFromFirestore(gameDoc);
+
+      if (game.phase != GamePhase.playing) {
+        throw Exception('Can only call out during playing phase');
+      }
+
+      // Get caller
+      final caller = game.getPlayerByUserId(userId);
+      if (caller == null) {
+        throw Exception('Player not found in game');
+      }
+
+      final callingTeam = caller.team;
+      final opposingTeam = callingTeam == 0 ? 1 : 0;
+
+      // Check if opposing team cheated
+      final cheaterPosition = _gameLogic.detectCheat(
+        team: opposingTeam,
+        players: game.players,
+        playerSuitClaims: game.playerSuitClaims,
+      );
+
+      final cheatDetected = cheaterPosition != null;
+      final winningTeam = cheatDetected ? callingTeam : opposingTeam;
+
+      // Create result
+      final result = GameResult(
+        winningTeam: winningTeam,
+        team0Tricks: game.team0TricksWon,
+        team1Tricks: game.team1TricksWon,
+        resultType: cheatDetected
+            ? GameConstants.resultCalloutWin
+            : GameConstants.resultCalloutLoss,
+        callerPosition: caller.position,
+        cheatDetected: cheatDetected,
+      );
+
+      // End game
+      await gameRef.update({
+        'phase': GamePhase.ended.name,
+        'result': _resultToMap(result),
+        'endedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      throw Exception('Failed to call out: ${e.toString()}');
+    }
+  }
+
   // Conversion methods
 
   Map<String, dynamic> _gameToFirestore(GameModel game) {
@@ -358,6 +437,9 @@ class GameRepository {
       'trumpMakerFirstFive': game.trumpMakerFirstFive?.map((c) => _cardToMap(c)).toList(),
       'trumpMakerLastFour': game.trumpMakerLastFour?.map((c) => _cardToMap(c)).toList(),
       'reshuffleCount': game.reshuffleCount,
+      'playerSuitClaims': game.playerSuitClaims.map(
+        (position, suits) => MapEntry(position.toString(), suits),
+      ),
     };
   }
 
@@ -398,11 +480,22 @@ class GameRepository {
       'team0Tricks': result.team0Tricks,
       'team1Tricks': result.team1Tricks,
       'resultType': result.resultType,
+      'callerPosition': result.callerPosition,
+      'cheatDetected': result.cheatDetected,
     };
   }
 
   GameModel _gameFromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
+
+    // Parse playerSuitClaims
+    final suitClaimsData = data['playerSuitClaims'] as Map<String, dynamic>? ?? {};
+    final playerSuitClaims = suitClaimsData.map(
+      (key, value) => MapEntry(
+        int.parse(key),
+        List<String>.from(value as List),
+      ),
+    );
 
     return GameModel(
       id: doc.id,
@@ -438,6 +531,7 @@ class GameRepository {
           ?.map((c) => _cardFromMap(c as Map<String, dynamic>))
           .toList(),
       reshuffleCount: data['reshuffleCount'] as int? ?? 0,
+      playerSuitClaims: playerSuitClaims,
     );
   }
 
@@ -484,6 +578,8 @@ class GameRepository {
       team0Tricks: map['team0Tricks'] as int,
       team1Tricks: map['team1Tricks'] as int,
       resultType: map['resultType'] as String,
+      callerPosition: map['callerPosition'] as int?,
+      cheatDetected: map['cheatDetected'] as bool?,
     );
   }
 }

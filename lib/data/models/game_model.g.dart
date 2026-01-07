@@ -34,6 +34,8 @@ _$GameResultImpl _$$GameResultImplFromJson(Map<String, dynamic> json) =>
       team0Tricks: (json['team0Tricks'] as num).toInt(),
       team1Tricks: (json['team1Tricks'] as num).toInt(),
       resultType: json['resultType'] as String,
+      callerPosition: (json['callerPosition'] as num?)?.toInt(),
+      cheatDetected: json['cheatDetected'] as bool?,
     );
 
 Map<String, dynamic> _$$GameResultImplToJson(_$GameResultImpl instance) =>
@@ -42,6 +44,8 @@ Map<String, dynamic> _$$GameResultImplToJson(_$GameResultImpl instance) =>
       'team0Tricks': instance.team0Tricks,
       'team1Tricks': instance.team1Tricks,
       'resultType': instance.resultType,
+      'callerPosition': instance.callerPosition,
+      'cheatDetected': instance.cheatDetected,
     };
 
 _$GameModelImpl _$$GameModelImplFromJson(Map<String, dynamic> json) =>
@@ -79,6 +83,14 @@ _$GameModelImpl _$$GameModelImplFromJson(Map<String, dynamic> json) =>
           ?.map((e) => CardModel.fromJson(e as Map<String, dynamic>))
           .toList(),
       reshuffleCount: (json['reshuffleCount'] as num?)?.toInt(),
+      playerSuitClaims:
+          (json['playerSuitClaims'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(
+              int.parse(k),
+              (e as List<dynamic>).map((e) => e as String).toList(),
+            ),
+          ) ??
+          const {},
     );
 
 Map<String, dynamic> _$$GameModelImplToJson(_$GameModelImpl instance) =>
@@ -102,6 +114,9 @@ Map<String, dynamic> _$$GameModelImplToJson(_$GameModelImpl instance) =>
       'trumpMakerFirstFive': instance.trumpMakerFirstFive,
       'trumpMakerLastFour': instance.trumpMakerLastFour,
       'reshuffleCount': instance.reshuffleCount,
+      'playerSuitClaims': instance.playerSuitClaims.map(
+        (k, e) => MapEntry(k.toString(), e),
+      ),
     };
 
 const _$GamePhaseEnumMap = {

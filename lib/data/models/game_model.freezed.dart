@@ -307,7 +307,11 @@ mixin _$GameResult {
   int get winningTeam => throw _privateConstructorUsedError; // 0 or 1
   int get team0Tricks => throw _privateConstructorUsedError;
   int get team1Tricks => throw _privateConstructorUsedError;
-  String get resultType => throw _privateConstructorUsedError;
+  String get resultType =>
+      throw _privateConstructorUsedError; // 'normal', '7-0', '13-0', 'callout-win', 'callout-loss'
+  int? get callerPosition =>
+      throw _privateConstructorUsedError; // Position of player who called out (null for normal wins)
+  bool? get cheatDetected => throw _privateConstructorUsedError;
 
   /// Serializes this GameResult to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -331,6 +335,8 @@ abstract class $GameResultCopyWith<$Res> {
     int team0Tricks,
     int team1Tricks,
     String resultType,
+    int? callerPosition,
+    bool? cheatDetected,
   });
 }
 
@@ -353,6 +359,8 @@ class _$GameResultCopyWithImpl<$Res, $Val extends GameResult>
     Object? team0Tricks = null,
     Object? team1Tricks = null,
     Object? resultType = null,
+    Object? callerPosition = freezed,
+    Object? cheatDetected = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -372,6 +380,14 @@ class _$GameResultCopyWithImpl<$Res, $Val extends GameResult>
                 ? _value.resultType
                 : resultType // ignore: cast_nullable_to_non_nullable
                       as String,
+            callerPosition: freezed == callerPosition
+                ? _value.callerPosition
+                : callerPosition // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            cheatDetected: freezed == cheatDetected
+                ? _value.cheatDetected
+                : cheatDetected // ignore: cast_nullable_to_non_nullable
+                      as bool?,
           )
           as $Val,
     );
@@ -392,6 +408,8 @@ abstract class _$$GameResultImplCopyWith<$Res>
     int team0Tricks,
     int team1Tricks,
     String resultType,
+    int? callerPosition,
+    bool? cheatDetected,
   });
 }
 
@@ -413,6 +431,8 @@ class __$$GameResultImplCopyWithImpl<$Res>
     Object? team0Tricks = null,
     Object? team1Tricks = null,
     Object? resultType = null,
+    Object? callerPosition = freezed,
+    Object? cheatDetected = freezed,
   }) {
     return _then(
       _$GameResultImpl(
@@ -432,6 +452,14 @@ class __$$GameResultImplCopyWithImpl<$Res>
             ? _value.resultType
             : resultType // ignore: cast_nullable_to_non_nullable
                   as String,
+        callerPosition: freezed == callerPosition
+            ? _value.callerPosition
+            : callerPosition // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        cheatDetected: freezed == cheatDetected
+            ? _value.cheatDetected
+            : cheatDetected // ignore: cast_nullable_to_non_nullable
+                  as bool?,
       ),
     );
   }
@@ -445,6 +473,8 @@ class _$GameResultImpl implements _GameResult {
     required this.team0Tricks,
     required this.team1Tricks,
     required this.resultType,
+    this.callerPosition,
+    this.cheatDetected,
   });
 
   factory _$GameResultImpl.fromJson(Map<String, dynamic> json) =>
@@ -459,10 +489,16 @@ class _$GameResultImpl implements _GameResult {
   final int team1Tricks;
   @override
   final String resultType;
+  // 'normal', '7-0', '13-0', 'callout-win', 'callout-loss'
+  @override
+  final int? callerPosition;
+  // Position of player who called out (null for normal wins)
+  @override
+  final bool? cheatDetected;
 
   @override
   String toString() {
-    return 'GameResult(winningTeam: $winningTeam, team0Tricks: $team0Tricks, team1Tricks: $team1Tricks, resultType: $resultType)';
+    return 'GameResult(winningTeam: $winningTeam, team0Tricks: $team0Tricks, team1Tricks: $team1Tricks, resultType: $resultType, callerPosition: $callerPosition, cheatDetected: $cheatDetected)';
   }
 
   @override
@@ -477,7 +513,11 @@ class _$GameResultImpl implements _GameResult {
             (identical(other.team1Tricks, team1Tricks) ||
                 other.team1Tricks == team1Tricks) &&
             (identical(other.resultType, resultType) ||
-                other.resultType == resultType));
+                other.resultType == resultType) &&
+            (identical(other.callerPosition, callerPosition) ||
+                other.callerPosition == callerPosition) &&
+            (identical(other.cheatDetected, cheatDetected) ||
+                other.cheatDetected == cheatDetected));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -488,6 +528,8 @@ class _$GameResultImpl implements _GameResult {
     team0Tricks,
     team1Tricks,
     resultType,
+    callerPosition,
+    cheatDetected,
   );
 
   /// Create a copy of GameResult
@@ -510,6 +552,8 @@ abstract class _GameResult implements GameResult {
     required final int team0Tricks,
     required final int team1Tricks,
     required final String resultType,
+    final int? callerPosition,
+    final bool? cheatDetected,
   }) = _$GameResultImpl;
 
   factory _GameResult.fromJson(Map<String, dynamic> json) =
@@ -522,7 +566,11 @@ abstract class _GameResult implements GameResult {
   @override
   int get team1Tricks;
   @override
-  String get resultType;
+  String get resultType; // 'normal', '7-0', '13-0', 'callout-win', 'callout-loss'
+  @override
+  int? get callerPosition; // Position of player who called out (null for normal wins)
+  @override
+  bool? get cheatDetected;
 
   /// Create a copy of GameResult
   /// with the given fields replaced by the non-null parameter values.
@@ -566,7 +614,11 @@ mixin _$GameModel {
       throw _privateConstructorUsedError; // First 5 cards shown to trump maker
   List<CardModel>? get trumpMakerLastFour =>
       throw _privateConstructorUsedError; // Last 4 cards (if deferred)
-  int? get reshuffleCount => throw _privateConstructorUsedError;
+  int? get reshuffleCount =>
+      throw _privateConstructorUsedError; // Number of reshuffles (max 2)
+  // Cheating tracking - maps player position to suits they claimed not to have
+  Map<int, List<String>> get playerSuitClaims =>
+      throw _privateConstructorUsedError;
 
   /// Serializes this GameModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -603,6 +655,7 @@ abstract class $GameModelCopyWith<$Res> {
     List<CardModel>? trumpMakerFirstFive,
     List<CardModel>? trumpMakerLastFour,
     int? reshuffleCount,
+    Map<int, List<String>> playerSuitClaims,
   });
 
   $TrickModelCopyWith<$Res>? get currentTrick;
@@ -643,6 +696,7 @@ class _$GameModelCopyWithImpl<$Res, $Val extends GameModel>
     Object? trumpMakerFirstFive = freezed,
     Object? trumpMakerLastFour = freezed,
     Object? reshuffleCount = freezed,
+    Object? playerSuitClaims = null,
   }) {
     return _then(
       _value.copyWith(
@@ -722,6 +776,10 @@ class _$GameModelCopyWithImpl<$Res, $Val extends GameModel>
                 ? _value.reshuffleCount
                 : reshuffleCount // ignore: cast_nullable_to_non_nullable
                       as int?,
+            playerSuitClaims: null == playerSuitClaims
+                ? _value.playerSuitClaims
+                : playerSuitClaims // ignore: cast_nullable_to_non_nullable
+                      as Map<int, List<String>>,
           )
           as $Val,
     );
@@ -785,6 +843,7 @@ abstract class _$$GameModelImplCopyWith<$Res>
     List<CardModel>? trumpMakerFirstFive,
     List<CardModel>? trumpMakerLastFour,
     int? reshuffleCount,
+    Map<int, List<String>> playerSuitClaims,
   });
 
   @override
@@ -826,6 +885,7 @@ class __$$GameModelImplCopyWithImpl<$Res>
     Object? trumpMakerFirstFive = freezed,
     Object? trumpMakerLastFour = freezed,
     Object? reshuffleCount = freezed,
+    Object? playerSuitClaims = null,
   }) {
     return _then(
       _$GameModelImpl(
@@ -905,6 +965,10 @@ class __$$GameModelImplCopyWithImpl<$Res>
             ? _value.reshuffleCount
             : reshuffleCount // ignore: cast_nullable_to_non_nullable
                   as int?,
+        playerSuitClaims: null == playerSuitClaims
+            ? _value._playerSuitClaims
+            : playerSuitClaims // ignore: cast_nullable_to_non_nullable
+                  as Map<int, List<String>>,
       ),
     );
   }
@@ -933,10 +997,12 @@ class _$GameModelImpl extends _GameModel {
     final List<CardModel>? trumpMakerFirstFive,
     final List<CardModel>? trumpMakerLastFour,
     this.reshuffleCount,
+    final Map<int, List<String>> playerSuitClaims = const {},
   }) : _players = players,
        _completedTricks = completedTricks,
        _trumpMakerFirstFive = trumpMakerFirstFive,
        _trumpMakerLastFour = trumpMakerLastFour,
+       _playerSuitClaims = playerSuitClaims,
        super._();
 
   factory _$GameModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -1025,10 +1091,22 @@ class _$GameModelImpl extends _GameModel {
   // Last 4 cards (if deferred)
   @override
   final int? reshuffleCount;
+  // Number of reshuffles (max 2)
+  // Cheating tracking - maps player position to suits they claimed not to have
+  final Map<int, List<String>> _playerSuitClaims;
+  // Number of reshuffles (max 2)
+  // Cheating tracking - maps player position to suits they claimed not to have
+  @override
+  @JsonKey()
+  Map<int, List<String>> get playerSuitClaims {
+    if (_playerSuitClaims is EqualUnmodifiableMapView) return _playerSuitClaims;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_playerSuitClaims);
+  }
 
   @override
   String toString() {
-    return 'GameModel(id: $id, lobbyId: $lobbyId, phase: $phase, players: $players, dealerPosition: $dealerPosition, trumpMakerPosition: $trumpMakerPosition, trumpSuit: $trumpSuit, currentTrick: $currentTrick, completedTricks: $completedTricks, team0TricksWon: $team0TricksWon, team1TricksWon: $team1TricksWon, team0Name: $team0Name, team1Name: $team1Name, result: $result, createdAt: $createdAt, endedAt: $endedAt, trumpMakerFirstFive: $trumpMakerFirstFive, trumpMakerLastFour: $trumpMakerLastFour, reshuffleCount: $reshuffleCount)';
+    return 'GameModel(id: $id, lobbyId: $lobbyId, phase: $phase, players: $players, dealerPosition: $dealerPosition, trumpMakerPosition: $trumpMakerPosition, trumpSuit: $trumpSuit, currentTrick: $currentTrick, completedTricks: $completedTricks, team0TricksWon: $team0TricksWon, team1TricksWon: $team1TricksWon, team0Name: $team0Name, team1Name: $team1Name, result: $result, createdAt: $createdAt, endedAt: $endedAt, trumpMakerFirstFive: $trumpMakerFirstFive, trumpMakerLastFour: $trumpMakerLastFour, reshuffleCount: $reshuffleCount, playerSuitClaims: $playerSuitClaims)';
   }
 
   @override
@@ -1073,7 +1151,11 @@ class _$GameModelImpl extends _GameModel {
               _trumpMakerLastFour,
             ) &&
             (identical(other.reshuffleCount, reshuffleCount) ||
-                other.reshuffleCount == reshuffleCount));
+                other.reshuffleCount == reshuffleCount) &&
+            const DeepCollectionEquality().equals(
+              other._playerSuitClaims,
+              _playerSuitClaims,
+            ));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1099,6 +1181,7 @@ class _$GameModelImpl extends _GameModel {
     const DeepCollectionEquality().hash(_trumpMakerFirstFive),
     const DeepCollectionEquality().hash(_trumpMakerLastFour),
     reshuffleCount,
+    const DeepCollectionEquality().hash(_playerSuitClaims),
   ]);
 
   /// Create a copy of GameModel
@@ -1136,6 +1219,7 @@ abstract class _GameModel extends GameModel {
     final List<CardModel>? trumpMakerFirstFive,
     final List<CardModel>? trumpMakerLastFour,
     final int? reshuffleCount,
+    final Map<int, List<String>> playerSuitClaims,
   }) = _$GameModelImpl;
   const _GameModel._() : super._();
 
@@ -1179,7 +1263,10 @@ abstract class _GameModel extends GameModel {
   @override
   List<CardModel>? get trumpMakerLastFour; // Last 4 cards (if deferred)
   @override
-  int? get reshuffleCount;
+  int? get reshuffleCount; // Number of reshuffles (max 2)
+  // Cheating tracking - maps player position to suits they claimed not to have
+  @override
+  Map<int, List<String>> get playerSuitClaims;
 
   /// Create a copy of GameModel
   /// with the given fields replaced by the non-null parameter values.

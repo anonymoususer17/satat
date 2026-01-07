@@ -4,6 +4,45 @@ import '../../data/models/card_model.dart';
 import '../../data/models/trick_model.dart';
 import '../../data/models/game_model.dart';
 
+/// Status of a card play validation
+enum CardPlayStatus {
+  valid, // Card follows all rules
+  invalidCheating, // Card breaks rules but can be played (cheating)
+  forbidden, // Card truly cannot be played (player doesn't have it)
+}
+
+/// Result of card play validation
+class CardPlayValidation {
+  final CardPlayStatus status;
+  final String? errorMessage;
+  final CardSuit? claimedNotToHave; // Which suit player claimed not to have
+
+  CardPlayValidation({
+    required this.status,
+    this.errorMessage,
+    this.claimedNotToHave,
+  });
+
+  factory CardPlayValidation.valid() => CardPlayValidation(
+        status: CardPlayStatus.valid,
+      );
+
+  factory CardPlayValidation.forbidden(String message) => CardPlayValidation(
+        status: CardPlayStatus.forbidden,
+        errorMessage: message,
+      );
+
+  factory CardPlayValidation.cheating(String message, CardSuit claimedSuit) =>
+      CardPlayValidation(
+        status: CardPlayStatus.invalidCheating,
+        errorMessage: message,
+        claimedNotToHave: claimedSuit,
+      );
+
+  bool get isPlayable => status != CardPlayStatus.forbidden;
+  bool get isCheating => status == CardPlayStatus.invalidCheating;
+}
+
 /// Service containing all game logic and rules for Satat
 class GameLogicService {
   final Random _random = Random();
@@ -51,28 +90,37 @@ class GameLogicService {
   }
 
   /// Validate if a card can be played given the current trick state
-  /// Returns null if valid, or error message if invalid
-  String? validateCardPlay({
+  /// Returns CardPlayValidation with status and details
+  CardPlayValidation validateCardPlay({
     required CardModel card,
     required GamePlayer player,
     required TrickModel trick,
     required CardSuit trumpSuit,
+    required Map<int, List<String>> playerSuitClaims,
   }) {
-    // Check if player has the card
+    // Check if player has the card (truly forbidden)
     if (!player.hand.any((c) => c.id == card.id)) {
-      return 'You do not have this card';
+      return CardPlayValidation.forbidden('You do not have this card');
+    }
+
+    // Check if playing this card would expose previous cheat
+    final playerClaims = playerSuitClaims[player.position] ?? [];
+    if (playerClaims.contains(card.suit.name)) {
+      // Player previously claimed not to have this suit, now playing it
+      // This is auto-detected but still allow (they're doubling down on cheat)
+      // The callout mechanism will catch this
     }
 
     // If first card of trick, any card is valid
     if (trick.cardsPlayed.isEmpty) {
-      return null;
+      return CardPlayValidation.valid();
     }
 
     final leadSuit = trick.leadSuit!;
 
     // H2 can always be played
     if (card.isHeart2) {
-      return null;
+      return CardPlayValidation.valid();
     }
 
     // Check if H2 was led (special rule: must play trump if you have it)
@@ -81,9 +129,13 @@ class GameLogicService {
       // Must play trump if you have trump
       final hasTrump = player.hand.any((c) => c.suit == trumpSuit && !c.isHeart2);
       if (hasTrump && card.suit != trumpSuit) {
-        return 'When H2 is led, you must play trump if you have it';
+        // This is cheating - they have trump but not playing it
+        return CardPlayValidation.cheating(
+          'When H2 is led, you must play trump if you have it',
+          trumpSuit,
+        );
       }
-      return null;
+      return CardPlayValidation.valid();
     }
 
     // Normal following suit rules
@@ -91,10 +143,14 @@ class GameLogicService {
 
     // If player has lead suit, must play it (unless playing H2)
     if (hasLeadSuit && card.suit != leadSuit) {
-      return 'You must follow suit if possible';
+      // This is cheating - claiming not to have lead suit
+      return CardPlayValidation.cheating(
+        'You must follow suit if possible',
+        leadSuit,
+      );
     }
 
-    return null;
+    return CardPlayValidation.valid();
   }
 
   /// Determine the winner of a completed trick
@@ -192,21 +248,25 @@ class GameLogicService {
   }
 
   /// Get all valid cards a player can play for the current trick
+  /// Only returns truly valid cards (not cheating ones)
   List<CardModel> getValidCards({
     required GamePlayer player,
     required TrickModel trick,
     required CardSuit trumpSuit,
+    required Map<int, List<String>> playerSuitClaims,
   }) {
     final validCards = <CardModel>[];
 
     for (final card in player.hand) {
-      final error = validateCardPlay(
+      final validation = validateCardPlay(
         card: card,
         player: player,
         trick: trick,
         trumpSuit: trumpSuit,
+        playerSuitClaims: playerSuitClaims,
       );
-      if (error == null) {
+      // Only truly valid cards, not cheating ones
+      if (validation.status == CardPlayStatus.valid) {
         validCards.add(card);
       }
     }
@@ -276,5 +336,36 @@ class GameLogicService {
       'team0Tricks': winningTeam == 0 ? team0Tricks + 1 : team0Tricks,
       'team1Tricks': winningTeam == 1 ? team1Tricks + 1 : team1Tricks,
     };
+  }
+
+  /// Check if a team has cheated
+  /// Returns position of cheater if found, null otherwise
+  int? detectCheat({
+    required int team,
+    required List<GamePlayer> players,
+    required Map<int, List<String>> playerSuitClaims,
+  }) {
+    // Get team members (team 0 = positions 0 & 2, team 1 = positions 1 & 3)
+    final teamMembers = players.where((p) => p.team == team).toList();
+
+    for (final player in teamMembers) {
+      final claims = playerSuitClaims[player.position] ?? [];
+
+      // Check each claimed suit
+      for (final suitName in claims) {
+        final claimedSuit =
+            CardSuit.values.firstWhere((s) => s.name == suitName);
+
+        // Check if player currently has this suit in hand
+        final hasClaimedSuit = player.hand.any((card) => card.suit == claimedSuit);
+
+        if (hasClaimedSuit) {
+          // CHEAT! Player claimed not to have this suit but has it
+          return player.position;
+        }
+      }
+    }
+
+    return null; // No cheat detected
   }
 }

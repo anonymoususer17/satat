@@ -146,6 +146,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 
   Widget _buildHeader(BuildContext context, GameModel game) {
+    final currentUser = ref.watch(currentUserProvider).value;
+    final currentPlayer = currentUser != null ? game.getPlayerByUserId(currentUser.id) : null;
+
     return Container(
       padding: const EdgeInsets.all(AppTheme.spacingMedium),
       child: Row(
@@ -224,6 +227,26 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               ),
             ),
           ),
+
+          // Call Out button (only show during playing phase)
+          if (currentPlayer != null &&
+              game.phase == GamePhase.playing &&
+              game.result == null) ...[
+            const SizedBox(width: AppTheme.spacingSmall),
+            ElevatedButton.icon(
+              onPressed: () => _showCallOutConfirmation(context, ref, game.id, currentUser!.id),
+              icon: const Icon(Icons.warning, size: 18),
+              label: const Text('Call Out'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.errorColor,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppTheme.spacingSmall,
+                  vertical: AppTheme.spacingSmall,
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -486,46 +509,91 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   Widget _buildGameResult(BuildContext context, GameModel game) {
     final result = game.result!;
-    return Container(
-      padding: const EdgeInsets.all(AppTheme.spacingLarge),
-      margin: const EdgeInsets.all(AppTheme.spacingLarge),
-      decoration: BoxDecoration(
-        color: AppTheme.accentColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          const Icon(
-            Icons.emoji_events,
-            size: 64,
-            color: AppTheme.textPrimaryColor,
+
+    // Determine winning team name
+    final winningTeamName = result.winningTeam == 0 ? game.team0Name : game.team1Name;
+
+    // Get result message and icon based on type
+    String resultMessage;
+    IconData resultIcon;
+
+    switch (result.resultType) {
+      case '13-0':
+        resultMessage = 'Perfect Win! (13-0)';
+        resultIcon = Icons.emoji_events;
+        break;
+      case '7-0':
+        resultMessage = '7-0 Victory!';
+        resultIcon = Icons.emoji_events;
+        break;
+      case 'callout-win':
+        resultMessage = 'Callout Success!\nOpponents caught cheating!';
+        resultIcon = Icons.gavel;
+        break;
+      case 'callout-loss':
+        resultMessage = 'False Accusation!\nNo cheat detected.';
+        resultIcon = Icons.block;
+        break;
+      default:
+        resultMessage = 'Victory!';
+        resultIcon = Icons.emoji_events;
+    }
+
+    return SingleChildScrollView(
+      child: Container(
+        padding: const EdgeInsets.all(AppTheme.spacingMedium),
+        margin: const EdgeInsets.all(AppTheme.spacingMedium),
+        decoration: BoxDecoration(
+          color: AppTheme.accentColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: AppTheme.primaryColor,
+            width: 3,
           ),
-          const SizedBox(height: AppTheme.spacingMedium),
-          Text(
-            'Team ${result.winningTeam + 1} Wins!',
-            style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                  color: AppTheme.textPrimaryColor,
-                ),
-          ),
-          const SizedBox(height: AppTheme.spacingSmall),
-          Text(
-            result.resultType == '13-0'
-                ? 'Perfect Win!'
-                : result.resultType == '7-0'
-                    ? '7-0 Victory!'
-                    : 'Victory!',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: AppTheme.textPrimaryColor,
-                ),
-          ),
-          const SizedBox(height: AppTheme.spacingMedium),
-          Text(
-            'Score: ${result.team0Tricks} - ${result.team1Tricks}',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: AppTheme.textPrimaryColor,
-                ),
-          ),
-        ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              resultIcon,
+              size: 56,
+              color: AppTheme.textPrimaryColor,
+            ),
+            const SizedBox(height: AppTheme.spacingSmall),
+            Text(
+              '$winningTeamName Wins!',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: AppTheme.textPrimaryColor,
+                    fontWeight: FontWeight.bold,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppTheme.spacingSmall),
+            Text(
+              resultMessage,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: AppTheme.textPrimaryColor,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppTheme.spacingSmall),
+            Text(
+              'Final Score: ${result.team0Tricks} - ${result.team1Tricks}',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: AppTheme.textPrimaryColor,
+                  ),
+            ),
+            if (result.callerPosition != null) ...[
+              const SizedBox(height: AppTheme.spacingSmall),
+              Text(
+                'Called by: ${game.getPlayerByPosition(result.callerPosition!).displayName}',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppTheme.textPrimaryColor,
+                    ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -542,6 +610,18 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     const cardHeight = 168.0;
     const cardOverlapOffset = 40.0; // How much each card overlaps the previous one
     const hoverOffset = 30.0; // How much card lifts when hovered
+
+    // Get valid cards (non-cheating) from game logic
+    List<CardModel> validCards = [];
+    if (isMyTurn && game.phase == GamePhase.playing && game.currentTrick != null && game.trumpSuit != null) {
+      final gameLogic = ref.read(gameLogicServiceProvider);
+      validCards = gameLogic.getValidCards(
+        player: player,
+        trick: game.currentTrick!,
+        trumpSuit: game.trumpSuit!,
+        playerSuitClaims: game.playerSuitClaims,
+      );
+    }
 
     return Container(
       height: 230,
@@ -565,6 +645,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                       final card = sortedHand[index];
                       final canPlay = isMyTurn && game.phase == GamePhase.playing;
                       final isHovered = _hoveredCardIndex == index;
+                      final isValidCard = validCards.any((c) => c.id == card.id);
+                      final shouldGrey = canPlay && !isValidCard; // Grey if playable but invalid
 
                       final cardWidget = AnimatedContainer(
                         duration: const Duration(milliseconds: 150),
@@ -577,17 +659,17 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                         child: Stack(
                           children: [
                             ColorFiltered(
-                              colorFilter: canPlay
-                                  ? const ColorFilter.mode(
-                                      Colors.transparent,
-                                      BlendMode.multiply,
-                                    )
-                                  : const ColorFilter.matrix(<double>[
+                              colorFilter: shouldGrey || !canPlay
+                                  ? const ColorFilter.matrix(<double>[
                                       0.2126, 0.7152, 0.0722, 0, 0,
                                       0.2126, 0.7152, 0.0722, 0, 0,
                                       0.2126, 0.7152, 0.0722, 0, 0,
                                       0, 0, 0, 1, 0,
-                                    ]),
+                                    ])
+                                  : const ColorFilter.mode(
+                                      Colors.transparent,
+                                      BlendMode.multiply,
+                                    ),
                               child: _buildCardWidget(context, card),
                             ),
                             if (!canPlay)
@@ -743,6 +825,57 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _showCallOutConfirmation(
+    BuildContext context,
+    WidgetRef ref,
+    String gameId,
+    String userId,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Call Out Cheating'),
+        content: const Text(
+          'Are you sure you want to call out the opposing team for cheating?\n\n'
+          'If they cheated, your team wins immediately.\n'
+          'If they didn\'t cheat, your team loses immediately.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.errorColor,
+            ),
+            child: const Text('Call Out'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      final controller = ref.read(gameControllerProvider.notifier);
+      await controller.callOutOpposingTeam(
+        gameId: gameId,
+        userId: userId,
+      );
+
+      final state = ref.read(gameControllerProvider);
+      if (state.hasError && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(state.error!),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+        controller.clearError();
+      }
+    }
   }
 
   Future<void> _playCard(

@@ -52,7 +52,9 @@ class GameResult with _$GameResult {
     required int winningTeam, // 0 or 1
     required int team0Tricks,
     required int team1Tricks,
-    required String resultType, // 'normal', '7-0', or '13-0'
+    required String resultType, // 'normal', '7-0', '13-0', 'callout-win', 'callout-loss'
+    int? callerPosition, // Position of player who called out (null for normal wins)
+    bool? cheatDetected, // Was cheat found in callout (null for normal wins)
   }) = _GameResult;
 
   factory GameResult.fromJson(Map<String, dynamic> json) => _$GameResultFromJson(json);
@@ -84,6 +86,8 @@ class GameModel with _$GameModel {
     List<CardModel>? trumpMakerFirstFive, // First 5 cards shown to trump maker
     List<CardModel>? trumpMakerLastFour, // Last 4 cards (if deferred)
     int? reshuffleCount, // Number of reshuffles (max 2)
+    // Cheating tracking - maps player position to suits they claimed not to have
+    @Default({}) Map<int, List<String>> playerSuitClaims,
   }) = _GameModel;
 
   factory GameModel.fromJson(Map<String, dynamic> json) => _$GameModelFromJson(json);

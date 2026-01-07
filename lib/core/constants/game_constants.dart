@@ -80,6 +80,8 @@ class GameConstants {
   static const String resultNormalWin = 'normal'; // 7-12 tricks
   static const String result7to0Win = '7-0'; // Won first 7 tricks
   static const String resultPerfectWin = '13-0'; // Won all 13 tricks
+  static const String resultCalloutWin = 'callout-win'; // Won by successful callout
+  static const String resultCalloutLoss = 'callout-loss'; // Lost by false callout
 }
 
 /// Satat Game Rules Documentation
