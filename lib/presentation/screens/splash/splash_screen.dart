@@ -9,24 +9,62 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
+  bool _isNavigating = false;
+
   @override
   void initState() {
     super.initState();
-    _autoNavigate();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+
+    _startSplashSequence();
   }
 
-  void _autoNavigate() async {
-    // Auto-navigate to login after 3 seconds
-    await Future.delayed(const Duration(seconds: 3));
+  void _startSplashSequence() async {
+    // Fade in
+    await _controller.forward();
+
+    // Wait for 1.5 seconds
+    await Future.delayed(const Duration(milliseconds: 1500));
+
+    // Fade out and navigate
+    if (mounted && !_isNavigating) {
+      _fadeOutAndNavigate();
+    }
+  }
+
+  void _fadeOutAndNavigate() async {
+    if (_isNavigating) return;
+    _isNavigating = true;
+
+    // Fade out
+    await _controller.reverse();
+
+    // Navigate to login
     if (mounted) {
       context.go('/login');
     }
   }
 
   void _skipSplash() {
-    // Navigate immediately when tapped
-    context.go('/login');
+    // Fade out immediately when tapped
+    _fadeOutAndNavigate();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -36,7 +74,10 @@ class _SplashScreenState extends State<SplashScreen> {
       body: GestureDetector(
         onTap: _skipSplash,
         child: Center(
-          child: _buildSplashImage(),
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: _buildSplashImage(),
+          ),
         ),
       ),
     );
