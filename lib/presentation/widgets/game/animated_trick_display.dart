@@ -221,14 +221,14 @@ class _AnimatedTrickDisplayState extends State<AnimatedTrickDisplay> {
           ],
           Container(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: borderColor,
                 width: 3,
               ),
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(9),
               child: SizedBox(
                 width: 120,
                 height: 168,
