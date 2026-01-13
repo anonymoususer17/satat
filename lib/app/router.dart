@@ -24,7 +24,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isLoggingIn = state.matchedLocation == '/login' ||
           state.matchedLocation == '/register';
 
-      // Allow splash screen to show
+      // If logged in and on splash, skip to home
+      if (isLoggedIn && isSplash) {
+        return '/';
+      }
+
+      // Allow splash screen to show only when not logged in
       if (isSplash) {
         return null;
       }
