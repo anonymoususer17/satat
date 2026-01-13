@@ -193,9 +193,16 @@ class _AnimatedTrickDisplayState extends State<AnimatedTrickDisplay> {
     return Offset(cardX, cardY);
   }
 
-  /// Build a single card widget with optional label
-  Widget _buildCardWidget(CardModel card, {String? label}) {
+  /// Build a single card widget with optional label and team border
+  Widget _buildCardWidget(CardModel card, int playerPosition, {String? label}) {
     final assetPath = 'assets/cards/${card.id}.png';
+
+    // Determine team based on position
+    final cardTeam = playerPosition % 2 == 0 ? 0 : 1;
+    final currentPlayerTeam = widget.currentPlayerPosition % 2 == 0 ? 0 : 1;
+
+    // Blue border for my team, red border for opposing team
+    final borderColor = cardTeam == currentPlayerTeam ? Colors.blue : Colors.red;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -212,13 +219,23 @@ class _AnimatedTrickDisplayState extends State<AnimatedTrickDisplay> {
             ),
             const SizedBox(height: 4),
           ],
-          SizedBox(
-            width: 120,
-            height: 168,
-            child: Image.asset(
-              assetPath,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) {
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: borderColor,
+                width: 3,
+              ),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: SizedBox(
+                width: 120,
+                height: 168,
+                child: Image.asset(
+                  assetPath,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
                 // Fallback to text rendering if image not found
                 return Container(
                   decoration: BoxDecoration(
@@ -284,7 +301,9 @@ class _AnimatedTrickDisplayState extends State<AnimatedTrickDisplay> {
                     ],
                   ),
                 );
-              },
+                  },
+                ),
+              ),
             ),
           ),
         ],
@@ -346,6 +365,7 @@ class _AnimatedTrickDisplayState extends State<AnimatedTrickDisplay> {
                   top: currentPosition.dy,
                   child: _buildCardWidget(
                     playedCard.card,
+                    playedCard.position,
                     label: widget.game.getPlayerByPosition(playedCard.position).displayName,
                   ),
                 );
