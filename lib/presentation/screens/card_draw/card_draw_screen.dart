@@ -25,6 +25,8 @@ class CardDrawScreen extends ConsumerStatefulWidget {
 class _CardDrawScreenState extends ConsumerState<CardDrawScreen> {
   final Set<int> _processedBotPositions = {};
   final Random _random = Random();
+  int? _pickedCardIndex;
+  dynamic _pickedCard;
 
   @override
   Widget build(BuildContext context) {
@@ -257,24 +259,39 @@ class _CardDrawScreenState extends ConsumerState<CardDrawScreen> {
 
         final card = availableCards[index];
         final canPick = !hasCurrentPlayerPicked && currentPlayerPosition != -1;
+        final isPickedCard = _pickedCardIndex == index;
 
         return CardBackWidget(
           isEnabled: canPick,
           onTap: canPick
-              ? () => _handleCardPick(lobby.id, currentPlayerPosition, card)
+              ? () => _handleCardPick(lobby.id, currentPlayerPosition, card, index)
               : null,
+          shouldFlip: isPickedCard,
+          card: isPickedCard ? card : null,
         );
       },
     );
   }
 
-  void _handleCardPick(String lobbyId, int position, card) {
-    final controller = ref.read(cardDrawControllerProvider.notifier);
-    controller.pickCard(
-      lobbyId: lobbyId,
-      position: position,
-      card: card,
-    );
+  void _handleCardPick(String lobbyId, int position, card, int cardIndex) async {
+    // Show flip animation first
+    setState(() {
+      _pickedCardIndex = cardIndex;
+      _pickedCard = card;
+    });
+
+    // Wait for flip animation to complete
+    await Future.delayed(const Duration(milliseconds: 800));
+
+    // Then submit the pick
+    if (mounted) {
+      final controller = ref.read(cardDrawControllerProvider.notifier);
+      controller.pickCard(
+        lobbyId: lobbyId,
+        position: position,
+        card: card,
+      );
+    }
   }
 
   void _handleBotPicks(LobbyModel lobby) {
