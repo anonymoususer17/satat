@@ -861,21 +861,66 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   ) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        content: const Text('Are you sure?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('No'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.errorColor,
+      barrierColor: Colors.black54,
+      builder: (context) => _ZoomInDialog(
+        child: Container(
+          padding: const EdgeInsets.all(AppTheme.spacingLarge),
+          decoration: BoxDecoration(
+            color: AppTheme.cardColor,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: AppTheme.errorColor,
+              width: 3,
             ),
-            child: const Text('Yes'),
           ),
-        ],
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Are you sure?',
+                style: TextStyle(
+                  color: AppTheme.textOnCardColor,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: AppTheme.spacingLarge),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppTheme.spacingLarge,
+                        vertical: AppTheme.spacingMedium,
+                      ),
+                    ),
+                    child: const Text(
+                      'No',
+                      style: TextStyle(fontSize: 18),
+                    ),
+                  ),
+                  const SizedBox(width: AppTheme.spacingMedium),
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.errorColor,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppTheme.spacingLarge,
+                        vertical: AppTheme.spacingMedium,
+                      ),
+                    ),
+                    child: const Text(
+                      'Yes',
+                      style: TextStyle(fontSize: 18),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
 
@@ -924,5 +969,64 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       );
       controller.clearError();
     }
+  }
+}
+
+/// Custom dialog widget with zoom-in animation (starts big, scales down to normal)
+class _ZoomInDialog extends StatefulWidget {
+  final Widget child;
+
+  const _ZoomInDialog({required this.child});
+
+  @override
+  State<_ZoomInDialog> createState() => _ZoomInDialogState();
+}
+
+class _ZoomInDialogState extends State<_ZoomInDialog>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+
+    // Start from scale 3.0 (very big) and zoom down to 1.0 (normal)
+    _scaleAnimation = Tween<double>(
+      begin: 3.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutBack,
+    ));
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: AnimatedBuilder(
+        animation: _scaleAnimation,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _scaleAnimation.value,
+            child: child,
+          );
+        },
+        child: widget.child,
+      ),
+    );
   }
 }
