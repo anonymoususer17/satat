@@ -862,23 +862,18 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Call Out Cheating'),
-        content: const Text(
-          'Are you sure you want to call out the opposing team for cheating?\n\n'
-          'If they cheated, your team wins immediately.\n'
-          'If they didn\'t cheat, your team loses immediately.',
-        ),
+        content: const Text('Are you sure?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: const Text('No'),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.errorColor,
             ),
-            child: const Text('Call Out'),
+            child: const Text('Yes'),
           ),
         ],
       ),
