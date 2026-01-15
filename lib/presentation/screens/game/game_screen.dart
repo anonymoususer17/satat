@@ -134,16 +134,23 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         // Header with trump and score
         _buildHeader(context, game),
 
-        // Game area (tricks and opponents)
+        // Game area (tricks and opponents) with optional centered result overlay
         Expanded(
-          child: _buildGameArea(context, game, currentPlayer),
+          child: Stack(
+            children: [
+              _buildGameArea(context, game, currentPlayer),
+
+              // Center the game result overlay
+              if (game.result != null)
+                Center(
+                  child: _buildGameResult(context, game),
+                ),
+            ],
+          ),
         ),
 
-        // Show win screen OR player's hand (not both)
-        if (game.result != null)
-          _buildGameResult(context, game)
-        else
-          _buildPlayerHand(context, ref, game, currentPlayer, isMyTurn),
+        // Player's hand (always show, even when game ends)
+        _buildPlayerHand(context, ref, game, currentPlayer, isMyTurn),
       ],
     );
   }
@@ -540,85 +547,78 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         resultIcon = Icons.emoji_events;
     }
 
-    return Container(
-      height: 200, // Slightly less than player hand height
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppTheme.spacingMedium,
-        vertical: AppTheme.spacingSmall,
-      ),
-      child: Center(
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppTheme.spacingLarge,
-            vertical: AppTheme.spacingMedium,
+    return _ZoomInWidget(
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppTheme.spacingLarge,
+          vertical: AppTheme.spacingMedium,
+        ),
+        decoration: BoxDecoration(
+          color: AppTheme.accentColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: AppTheme.primaryColor,
+            width: 3,
           ),
-          decoration: BoxDecoration(
-            color: AppTheme.accentColor,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: AppTheme.primaryColor,
-              width: 3,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  resultIcon,
+                  size: 48,
+                  color: AppTheme.textPrimaryColor,
+                ),
+                const SizedBox(width: AppTheme.spacingMedium),
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '$winningTeamName Wins!',
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                              color: AppTheme.textPrimaryColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        resultMessage,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              color: AppTheme.textPrimaryColor,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    resultIcon,
-                    size: 48,
-                    color: AppTheme.textPrimaryColor,
-                  ),
+            const SizedBox(height: AppTheme.spacingSmall),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Score: ${result.team0Tricks} - ${result.team1Tricks}',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: AppTheme.textPrimaryColor,
+                      ),
+                ),
+                if (result.callerPosition != null) ...[
                   const SizedBox(width: AppTheme.spacingMedium),
-                  Flexible(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '$winningTeamName Wins!',
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                color: AppTheme.textPrimaryColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          resultMessage,
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                color: AppTheme.textPrimaryColor,
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppTheme.spacingSmall),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
                   Text(
-                    'Score: ${result.team0Tricks} - ${result.team1Tricks}',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    '• ${game.getPlayerByPosition(result.callerPosition!).displayName}',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: AppTheme.textPrimaryColor,
                         ),
                   ),
-                  if (result.callerPosition != null) ...[
-                    const SizedBox(width: AppTheme.spacingMedium),
-                    Text(
-                      '• ${game.getPlayerByPosition(result.callerPosition!).displayName}',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppTheme.textPrimaryColor,
-                          ),
-                    ),
-                  ],
                 ],
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -1027,6 +1027,62 @@ class _ZoomInDialogState extends State<_ZoomInDialog>
         },
         child: widget.child,
       ),
+    );
+  }
+}
+
+/// Widget with zoom-in animation (starts big, scales down to normal)
+class _ZoomInWidget extends StatefulWidget {
+  final Widget child;
+
+  const _ZoomInWidget({required this.child});
+
+  @override
+  State<_ZoomInWidget> createState() => _ZoomInWidgetState();
+}
+
+class _ZoomInWidgetState extends State<_ZoomInWidget>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
+
+    // Start from scale 3.0 (very big) and zoom down to 1.0 (normal)
+    _scaleAnimation = Tween<double>(
+      begin: 3.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutBack,
+    ));
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _scaleAnimation,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _scaleAnimation.value,
+          child: child,
+        );
+      },
+      child: widget.child,
     );
   }
 }
