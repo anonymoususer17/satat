@@ -77,12 +77,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Logo/Title
+                    // Logo/Title with fire animation
                     Center(
-                      child: Image.asset(
-                        'assets/title/satat.png',
-                        height: 150,
-                        fit: BoxFit.contain,
+                      child: _FireBackground(
+                        child: Image.asset(
+                          'assets/title/satat.png',
+                          height: 150,
+                          fit: BoxFit.contain,
+                        ),
                       ),
                     ),
                     const SizedBox(height: AppTheme.spacingXLarge),
@@ -168,6 +170,76 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Fire animation background widget
+class _FireBackground extends StatefulWidget {
+  final Widget child;
+
+  const _FireBackground({required this.child});
+
+  @override
+  State<_FireBackground> createState() => _FireBackgroundState();
+}
+
+class _FireBackgroundState extends State<_FireBackground>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            gradient: RadialGradient(
+              center: Alignment.bottomCenter,
+              radius: 1.5,
+              colors: [
+                Color.lerp(
+                  Colors.red.shade900,
+                  Colors.orange.shade800,
+                  _controller.value,
+                )!,
+                Color.lerp(
+                  Colors.orange.shade700,
+                  Colors.red.shade800,
+                  _controller.value,
+                )!,
+                Color.lerp(
+                  Colors.yellow.shade600,
+                  Colors.orange.shade600,
+                  _controller.value,
+                )!,
+                Colors.transparent,
+              ],
+              stops: const [0.0, 0.3, 0.6, 1.0],
+            ),
+          ),
+          child: child,
+        );
+      },
+      child: widget.child,
     );
   }
 }

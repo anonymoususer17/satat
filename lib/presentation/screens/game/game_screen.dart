@@ -1,6 +1,7 @@
 import 'dart:math' show pi;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/models/game_model.dart';
 import '../../../data/models/card_model.dart';
@@ -617,6 +618,20 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                   ),
                 ],
               ],
+            ),
+            const SizedBox(height: AppTheme.spacingMedium),
+            ElevatedButton.icon(
+              onPressed: () => context.go('/lobby/${game.lobbyId}'),
+              icon: const Icon(Icons.arrow_back),
+              label: const Text('Back to Lobby'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppTheme.spacingLarge,
+                  vertical: AppTheme.spacingMedium,
+                ),
+              ),
             ),
           ],
         ),
